@@ -1,12 +1,25 @@
-#!/bin/bash
+#!/bin/bash -e
 # Matrix Calculator
 
 echo $1 $2
 
 dims() {
-    if ["$#" -gt 1];
-        then
-            stderr
-            ret1
-    fi
+    echo "I am dims func for file $2"
+    echo "error" 1>&2
+    return 1
 }
+
+if [ "$1" = "dims" ];
+then
+
+    if [ "$#" -eq 1 ] && [ -r ! $2 ];
+    then 
+        echo "not readable"
+        exit 1
+
+    elif [ "$#" -gt 1 ];
+    then
+        $1 $2 #error
+
+    fi
+fi
