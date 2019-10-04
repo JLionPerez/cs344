@@ -1,0 +1,12 @@
+#!/bin/bash
+# Matrix Calculator
+
+echo $1 $2
+
+dims() {
+    if ["$#" -gt 1];
+        then
+            stderr
+            ret1
+    fi
+}
