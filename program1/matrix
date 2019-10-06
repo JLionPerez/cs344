@@ -1,27 +1,53 @@
 #!/bin/bash -e
 # Matrix Calculator
 
-#echo $1 $2 #prints function and file names
-
 dims() {
-    # echo "I am dims func for file $2"
-    # echo "error" 1>&2
-    # return 1
-    rows=$(wc -l $1) #saves count of lines in ROWS, $1 because it's the function's FIRST argument
-    echo $rows
+
+    if [ $# -gt "1" ]; #if number of files is greater than one
+    then
+        echo "error, too many arguments" 1>&2 #1>&2 means stderr
+        return 1 #anything greater than 0 means false
+
+    elif [ $# -eq 1 ] && [ ! -r $1 ] #if number of files is equal to one AND not readable
+    then
+        echo "error, file unreadable" 1>&2
+        return 1
+
+    else
+        #saves count of lines in rows, $1 because it's the function's FIRST argument
+        rows=$(wc -l < $1)
+
+        #prints columns
+        firstL=$(head -n 1 $1)
+        cols=$(echo $firstL | grep -o " " | wc -l)
+        ((cols++))
+
+        #prints rows and columns
+        echo $rows $cols
+
+        return 0 #means true
+    fi
 }
 
-# if [ "$1" = "dims" ];
-# then
+datafilepath="datafile$$"
 
-#     if [ "$#" -eq 1 ] && [ -r ! $2 ]; 
-#     then 
-#         echo "not readable" 1>&2
-#         exit 1
+if [ "$1" = "dims" ];
+then
+    if [ $# = "2" ]
+    then 
+        $1 $2 #dims filename.txt
 
-#     elif [ "$#" -gt 1 ];
-#     then
-#         $1 $2 #error
+    elif [ $# = "1" ]
+    then    
+        cat > "$datafilepath"
+        $1 "$datafilepath"
 
-#     fi
-# fi
+    else #if number of files is greater than one
+        echo "error, too many arguments" 1>&2
+        exit 1
+    fi
+
+else
+    echo "Error 2" 1>&2
+    exit 1
+fi
