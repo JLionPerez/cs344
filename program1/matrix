@@ -1,0 +1,27 @@
+#!/bin/bash -e
+# Matrix Calculator
+
+#echo $1 $2 #prints function and file names
+
+dims() {
+    # echo "I am dims func for file $2"
+    # echo "error" 1>&2
+    # return 1
+    rows=$(wc -l $1) #saves count of lines in ROWS, $1 because it's the function's FIRST argument
+    echo $rows
+}
+
+# if [ "$1" = "dims" ];
+# then
+
+#     if [ "$#" -eq 1 ] && [ -r ! $2 ]; 
+#     then 
+#         echo "not readable" 1>&2
+#         exit 1
+
+#     elif [ "$#" -gt 1 ];
+#     then
+#         $1 $2 #error
+
+#     fi
+# fi
