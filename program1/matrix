@@ -32,16 +32,16 @@ datafilepath="datafile$$"
 
 if [ "$1" = "dims" ];
 then
-    if [ $# = "2" ]
+    if [ $# = "2" ] #if there's two arguments
     then 
-        $1 $2 #dims, filename.txt
+        $1 $2 #function, filename.txt
 
-    elif [ $# = "1" ]
+    elif [ $# = "1" ] #if function was only provided
     then    
         cat > "$datafilepath" #asks the user for an input if one was not given the first time
         $1 "$datafilepath" #dims, user input
 
-    else #if number of files is greater than one
+    else #if number of arguments is greater than two
         echo "error, too many arguments" 1>&2
         exit 1
     fi
