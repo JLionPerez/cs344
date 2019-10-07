@@ -17,10 +17,9 @@ dims() {
         #saves count of lines in rows, $1 because it's the function's FIRST argument
         rows=$(wc -l < $1)
 
-        #prints columns
-        firstL=$(head -n 1 $1)
-        cols=$(echo $firstL | grep -o " " | wc -l)
-        ((cols++))
+        #prints columns, excepts for 1x1 matrices needs fixing
+        firstL=$(head -n 1 $1) #only counts for the first line
+        cols=$(echo $firstL | wc -w) #since it parses in strings it counts the "integers" in the matrices.txt files as words; counts "words"
 
         #prints rows and columns
         echo $rows $cols
@@ -35,12 +34,12 @@ if [ "$1" = "dims" ];
 then
     if [ $# = "2" ]
     then 
-        $1 $2 #dims filename.txt
+        $1 $2 #dims, filename.txt
 
     elif [ $# = "1" ]
     then    
-        cat > "$datafilepath"
-        $1 "$datafilepath"
+        cat > "$datafilepath" #asks the user for an input if one was not given the first time
+        $1 "$datafilepath" #dims, user input
 
     else #if number of files is greater than one
         echo "error, too many arguments" 1>&2
@@ -48,6 +47,6 @@ then
     fi
 
 else
-    echo "Error 2" 1>&2
+    echo "Error" 1>&2
     exit 1
 fi
