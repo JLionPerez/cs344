@@ -47,8 +47,13 @@ transpose() {
 		# rows=$(echo $firstL | tr '  ' '\n')
 		# echo $rows
 
-		cols=$(cut -f1 $1)
-		echo $cols
+		#for loop, replace cut -f '#' with i
+		cols_nums=$(cut -f 1 $1) #has the newline included, replace 1 with i; i represents which column
+		echo $cols_nums | cat -A #cat -A shows the newline at the end
+
+		rows=$cols_nums
+
+		cols_nums=$(cut -f 2 $1)
 
 		return 0
 	fi
