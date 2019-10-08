@@ -1,27 +1,101 @@
+# Matrix Calculator by Joelle Perez
+
 #!/bin/bash -e
-# Matrix Calculator
 
-#echo $1 $2 #prints function and file names
-
+#This function prints the dimensions of a matrix
 dims() {
-    # echo "I am dims func for file $2"
-    # echo "error" 1>&2
-    # return 1
-    rows=$(wc -l $1) #saves count of lines in ROWS, $1 because it's the function's FIRST argument
-    echo $rows
+	if [ $# -gt "1" ]; #if number of files is greater than one
+	then
+		echo "error, too many arguments" 1>&2 #1>&2 means stderr
+		return 1 #anything greater than 0 means false
+
+	elif [ $# -eq 1 ] && [ ! -r $1 ] #if number of files is equal to one AND not readable
+	then
+		echo "error, file unreadable" 1>&2
+		return 1
+
+	else
+		#saves count of lines in rows, $1 because it's the function's FIRST argument
+		rows=$(wc -l < $1)
+
+		#prints columns, excepts for 1x1 matrices needs fixing
+		firstL=$(head -n 1 $1) #stores in the first line
+		cols=$(echo $firstL | wc -w) #since it parses in strings it counts the "integers" in the matrices.txt files as words; counts "words"
+
+		#prints rows and columns
+		echo $rows $cols
+
+		return 0 #means true
+	fi
 }
 
-# if [ "$1" = "dims" ];
-# then
+transpose() {
+	matrix=""
+	next=""
 
-#     if [ "$#" -eq 1 ] && [ -r ! $2 ]; 
-#     then 
-#         echo "not readable" 1>&2
-#         exit 1
+	if [ $# -gt "1" ]; 
+	then
+		echo "error, too many arguments" 1>&2 
+		return 1 
 
-#     elif [ "$#" -gt 1 ];
-#     then
-#         $1 $2 #error
+	elif [ $# -eq 1 ] && [ ! -r $1 ]
+	then
+		echo "error, file unreadable" 1>&2
+		return 1
 
-#     fi
-# fi
+	else
+		firstL=$(head -n 1 $1)
+		cols=$(echo $firstL | wc -w)
+
+		#for each columns in row
+		for ((i=1; i<=$cols; i++))
+		do
+
+			cols_nums=$(cut -f $i $1) #has the newline included, still has spaces
+			echo $cols_nums | tr " " "\t" #replaces spaces with tabs
+		done
+
+		#echo $matrix $next
+
+		return 0
+	fi
+}
+
+#main
+datafilepath="datafile$$" #gets user inputted matrix
+
+#functions with single parameters
+if [ "$1" = "dims" ] || [ "$1" = "transpose" ] || [ "$1" = "mean" ];
+then
+	if [ $# = "2" ] #if there's two arguments
+	then 
+		$1 $2 #function, filename.txt
+
+	elif [ $# = "1" ] #if function was the only argument provided
+	then    
+		cat > "$datafilepath" #asks the user for a matrix if one was not given the first time
+		$1 "$datafilepath" #function, matrix; use ctr+d to finish matrix
+
+	else #if number of arguments is greater than two
+		echo "error, too many arguments" 1>&2
+		exit 1
+	fi #end for nested if statements
+
+#functions with two parameters
+elif [ "$1" =  "add" ] || [ "$1" = "multiply" ];
+then
+	if [ $# = "3" ] #if there's three arguments
+	then
+		$1 $2 $3 #function, file1.txt, file2.txt
+
+	# elif, if function was only provided
+
+	else #if number of arguments is greater than three
+		echo "error, too many arguments" 1>&2
+		exit 1
+	fi
+
+else
+	echo "Error, function not found" 1>&2
+	exit 1
+fi #end for outer if statements
