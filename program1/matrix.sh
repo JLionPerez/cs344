@@ -14,7 +14,7 @@ dims() {
         echo "error, file unreadable" 1>&2
         return 1
 
-    else
+	else
         #saves count of lines in rows, $1 because it's the function's FIRST argument
         rows=$(wc -l < $1)
 
