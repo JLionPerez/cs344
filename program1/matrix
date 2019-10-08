@@ -30,6 +30,9 @@ dims() {
 }
 
 transpose() {
+	matrix=""
+	next=""
+
 	if [ $# -gt "1" ]; 
 	then
 		echo "error, too many arguments" 1>&2 
@@ -41,30 +44,17 @@ transpose() {
 		return 1
 
 	else
-		firstL=$(head -n 1 $1)
-		#echo $firstL
+		firstL=$(head -n 1 $1) #gets first line
 
-		# rows=$(echo $firstL | tr '  ' '\n')
-		# echo $rows
-
-		#for loop, replace cut -f '#' with i
-		#line = "1 2 3 4"
+		#for each columns in row
 		for i in $firstL;
 		do
-			cols_nums=$(cut -f $i $1) #has the newline included, replace 1 with i; i represents which column
-			echo $cols_nums | cat -A #cat -A shows the newline at the end
+
+			cols_nums=$(cut -f $i $1) #has the newline included, still has spaces
+			echo $cols_nums | tr " " "\t" #replaces spaces with tabs
 		done
 
-		# cols_nums=$(cut -f 1 $1)
-		# echo $cols_nums | cat -A
-
-		# cols_count=$(echo cols_nums | wc -w)
-		# echo $cols_count
-
-		# rows=$cols_nums
-
-		# cols_nums=$(cut -f 2 $1) #second column
-
+		#echo $matrix $next
 
 		return 0
 	fi
