@@ -41,19 +41,30 @@ transpose() {
 		return 1
 
 	else
-		#firstL=$(head -n 1 $1)
-		# echo $firstL
+		firstL=$(head -n 1 $1)
+		#echo $firstL
 
 		# rows=$(echo $firstL | tr '  ' '\n')
 		# echo $rows
 
 		#for loop, replace cut -f '#' with i
-		cols_nums=$(cut -f 1 $1) #has the newline included, replace 1 with i; i represents which column
-		echo $cols_nums | cat -A #cat -A shows the newline at the end
+		#line = "1 2 3 4"
+		for i in $firstL;
+		do
+			cols_nums=$(cut -f $i $1) #has the newline included, replace 1 with i; i represents which column
+			echo $cols_nums | cat -A #cat -A shows the newline at the end
+		done
 
-		rows=$cols_nums
+		# cols_nums=$(cut -f 1 $1)
+		# echo $cols_nums | cat -A
 
-		cols_nums=$(cut -f 2 $1)
+		# cols_count=$(echo cols_nums | wc -w)
+		# echo $cols_count
+
+		# rows=$cols_nums
+
+		# cols_nums=$(cut -f 2 $1) #second column
+
 
 		return 0
 	fi
