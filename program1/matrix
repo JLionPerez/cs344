@@ -44,10 +44,11 @@ transpose() {
 		return 1
 
 	else
-		firstL=$(head -n 1 $1) #gets first line
+		firstL=$(head -n 1 $1)
+		cols=$(echo $firstL | wc -w)
 
 		#for each columns in row
-		for i in $firstL;
+		for ((i=1; i<=$cols; i++))
 		do
 
 			cols_nums=$(cut -f $i $1) #has the newline included, still has spaces
