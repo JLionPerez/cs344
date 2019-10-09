@@ -47,10 +47,10 @@ transpose() {
 		#for each columns in row
 		for ((i=1; i<=$cols; i++))
 		do
-
 			cols_nums=$(cut -f $i $1) #has the newline included, still has spaces
 			echo $cols_nums | tr " " "\t" #replaces spaces with tabs
 		done
+
 		return 0
 
 	fi
@@ -75,28 +75,27 @@ mean() {
 		#iterate through each column
 		for ((i=1; i<=cols; i++))
 		do
-
+			mean=0
 			sum=0
 			cols_nums=$(cut -f $i $1)
 
 			#iterate through each row of each column
 			for j in $cols_nums;
 			do
-
-			# 	#add numbers
-				sum=`expr $sum + $j`
+				sum=`expr $sum + $j` #add numbers
 
 			done
 
 			#divide sum by rows
+			mean=$((($sum + ($rows/2)*( ($sum>0)*2-1 )) / $rows))
 
 			#printing means
-			if [ $i = $cols ]
+			if [ $i = $cols ] #adds a newline at the end
 			then 
-				printf "%s\n" $sum
+				printf "%s\n" $mean
 
-			else
-				printf "%s\t" $sum
+			else #adds tabs
+				printf "%s\t" $mean
 
 			fi
 
