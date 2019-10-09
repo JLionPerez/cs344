@@ -4,7 +4,7 @@
 
 #This function prints the dimensions of a matrix
 dims() {
-	if [ $# -gt "1" ]; #if number of files is greater than one
+	if [ $# -gt 1 ]; #if number of files is greater than one
 	then
 		echo "error, too many arguments" 1>&2 #1>&2 means stderr
 		return 1 #anything greater than 0 means false
@@ -30,7 +30,7 @@ dims() {
 }
 
 transpose() {
-	if [ $# -gt "1" ]; 
+	if [ $# -gt 1 ]; 
 	then
 		echo "error, too many arguments" 1>&2 
 		return 1 
@@ -57,7 +57,7 @@ transpose() {
 }
 
 mean() {
-	if [ $# -gt "1" ]; 
+	if [ $# -gt 1 ]; 
 	then
 		echo "error, too many arguments" 1>&2 
 		return 1 
@@ -105,6 +105,27 @@ mean() {
 	fi
 }
 
+add() {
+	if [ $# -gt 2 ];
+	then
+		echo "error, too many arguments" 1>&2
+		return 1
+
+	elif  { [ ! -r $1 ] || [ ! -r $2 ]; } && [ $# -eq 2 ]
+	then
+		echo "error, file unreadable" 1>&2
+		return 1
+
+	else
+		echo add	
+		return 0
+	fi
+}
+
+multiply() {
+	echo multiply
+}
+
 #main
 datafilepath="datafile$$" #gets user inputted matrix
 
@@ -132,10 +153,8 @@ then
 	then
 		$1 $2 $3 #function, file1.txt, file2.txt
 
-	# elif, if function was only provided
-
-	else #if number of arguments is greater than three
-		echo "error, too many arguments" 1>&2
+	else #if there is not three arguments
+		echo "error, invalid amount of arguments" 1>&2
 		exit 1
 	fi
 
