@@ -106,6 +106,16 @@ mean() {
 }
 
 add() {
+	#first matrix rows and cols
+	firstL1=$(head -n 1 $1)
+	cols1=$(echo $firstL | wc -w)
+	rows1=$(wc -l < $1)
+
+	#second matrix rows and cols
+	firstL2=$(head -n 1 $2)
+	cols2=$(echo $firstL | wc -w)
+	rows2=$(wc -l < $2)
+
 	if [ $# -gt 2 ];
 	then
 		echo "error, too many arguments" 1>&2
@@ -114,6 +124,11 @@ add() {
 	elif  { [ ! -r $1 ] || [ ! -r $2 ]; } && [ $# -eq 2 ]
 	then
 		echo "error, file unreadable" 1>&2
+		return 1
+
+	elif [ $cols1 -ne $cols2 ] $$ [ $rows1 -ne $rows2 ]
+	then 
+		echo "error, dimensions are not the same" 1>&2
 		return 1
 
 	else
