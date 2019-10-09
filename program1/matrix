@@ -24,15 +24,12 @@ dims() {
 
 		#prints rows and columns
 		echo $rows $cols
-
 		return 0 #means true
+
 	fi
 }
 
 transpose() {
-	matrix=""
-	next=""
-
 	if [ $# -gt "1" ]; 
 	then
 		echo "error, too many arguments" 1>&2 
@@ -54,8 +51,56 @@ transpose() {
 			cols_nums=$(cut -f $i $1) #has the newline included, still has spaces
 			echo $cols_nums | tr " " "\t" #replaces spaces with tabs
 		done
+		return 0
 
-		#echo $matrix $next
+	fi
+}
+
+mean() {
+	if [ $# -gt "1" ]; 
+	then
+		echo "error, too many arguments" 1>&2 
+		return 1 
+
+	elif [ $# -eq 1 ] && [ ! -r $1 ] 
+	then
+		echo "error, file unreadable" 1>&2
+		return 1
+	
+	else
+		firstL=$(head -n 1 $1)
+		cols=$(echo $firstL | wc -w)
+		rows=$(wc -l < $1)
+
+		#iterate through each column
+		for ((i=1; i<=cols; i++))
+		do
+
+			sum=0
+			cols_nums=$(cut -f $i $1)
+
+			#iterate through each row of each column
+			for j in $cols_nums;
+			do
+
+			# 	#add numbers
+				sum=`expr $sum + $j`
+
+			done
+
+			#divide sum by rows
+
+			#printing means
+			if [ $i = $cols ]
+			then 
+				printf "%s\n" $sum
+
+			else
+				printf "%s\t" $sum
+
+			fi
+
+		done
 
 		return 0
 	fi
@@ -82,7 +127,7 @@ then
 	fi #end for nested if statements
 
 #functions with two parameters
-elif [ "$1" =  "add" ] || [ "$1" = "multiply" ];
+elif [ "$1" = "add" ] || [ "$1" = "multiply" ];
 then
 	if [ $# = "3" ] #if there's three arguments
 	then
