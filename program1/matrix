@@ -108,12 +108,12 @@ mean() {
 add() {
 	#first matrix rows and cols
 	firstL1=$(head -n 1 $1)
-	cols1=$(echo $firstL | wc -w)
+	cols1=$(echo $firstL1 | wc -w)
 	rows1=$(wc -l < $1)
 
 	#second matrix rows and cols
 	firstL2=$(head -n 1 $2)
-	cols2=$(echo $firstL | wc -w)
+	cols2=$(echo $firstL2 | wc -w)
 	rows2=$(wc -l < $2)
 
 	if [ $# -gt 2 ];
@@ -126,7 +126,7 @@ add() {
 		echo "error, file unreadable" 1>&2
 		return 1
 
-	elif [ $cols1 -ne $cols2 ] $$ [ $rows1 -ne $rows2 ]
+	elif [ $cols1 != $cols2 ] || [ $rows1 != $rows2 ]
 	then 
 		echo "error, dimensions are not the same" 1>&2
 		return 1
