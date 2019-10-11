@@ -98,7 +98,6 @@ mean() {
 				printf "%s\t" $mean
 
 			fi
-
 		done
 
 		return 0
@@ -132,7 +131,43 @@ add() {
 		return 1
 
 	else
-		echo add	
+		firstL1=$(head -n 1 $1)
+		cols=$(echo $firstL1 | wc -w)
+		rows=$(wc -l < $1)	#number of rows in file 1
+
+		cols_nums1=0
+		cols_nums2=0
+
+		i=0 #while loop iterator
+		augend=0 #cols_nums1 iterator
+		append=0 #cols_nums2 iterator
+		sum=0
+
+		while read -u 3 left_matrix && read -u 4 right_matrix
+		do
+		((i++))
+
+		cols_nums1=$(cut -f $i $1)
+		cols_nums2=$(cut -f $i $2)
+
+		#echo $cols_nums1
+
+			for ((j=1; j<=$cols; j++))
+			do
+				augend=$(echo "$cols_nums1" | cut -d $'\n' -f $j)
+				append=$(echo "$cols_nums2" | cut -d $'\n' -f $j)
+				echo "index $j"
+				# echo "First file: $augend"
+				# echo "Second file: $append"
+				#echo "$augend + $append"
+			done
+			printf '\n'
+
+		done 3<"$1" 4<"$2"
+
+		# append=$(echo "$cols_nums1" | cut -f 1)
+		# echo $append
+
 		return 0
 	fi
 }
