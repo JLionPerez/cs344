@@ -143,9 +143,12 @@ add() {
 		#append=0 #cols_nums2 iterator
 		sum=0
 
-		while read -u 3 left_matrix && read -u 4 right_matrix
+		# while read -u 3 left_matrix && read -u 4 right_matrix
+		# do
+		# ((i++))
+
+		for ((i=1; i<=$cols; i++))
 		do
-		((i++))
 
 		cols_nums1=$(cut -f $i $1)
 		cols_nums2=$(cut -f $i $2)
@@ -156,15 +159,17 @@ add() {
 		#echo "rows: $rows"
 
 		newrow=$(($rows))
+		echo "DEBUG: newrow = $newrow"
 			for ((j=1; j<=$newrow; j++))
 			do
 
 				augend=$(echo "$cols_nums1" | cut -d $'\n' -f $j)
 				
 				append=$(echo "$cols_nums2" | cut -d $'\n' -f $j)
-				#echo "index $j"
-				#echo "First file: $augend"
-				#echo "Second file: $append"
+
+				# echo "index $j"
+				# echo "First file: $augend"
+				# echo "Second file: $append"
 				
 				sum=$(($augend+$append))
 				echo "$augend + $append = $sum"
@@ -174,7 +179,7 @@ add() {
 			done
 			printf '\n'
 
-		done 3<"$1" 4<"$2"
+		done
 
 		return 0
 	fi
