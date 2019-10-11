@@ -133,63 +133,26 @@ add() {
 	else
 		firstL1=$(head -n 1 $1)
 		cols=$(echo $firstL1 | wc -w)
-		rows=$(wc -l < $1)	#number of rows in file 1
-
-		#cols_nums1=0
-		#cols_nums2=0
-
-		i=0 #while loop iterator
-		#augend=0 #cols_nums1 iterator
-		#append=0 #cols_nums2 iterator
-		sum=0
 
 		while read -u 3 left_matrix && read -u 4 right_matrix
 		do
-		((i++))
-
-		# for ((i=1; i<=$cols; i++))
-		# do
-
-		# cols_nums1=$(cut -f $i <<< "$left_matrix")
-		# cols_nums2=$(cut -f $i <<< "$right_matrix")
-
-		#echo "colsnum1: $cols_nums1"
-		#echo "colsnum2: $cols_nums2"
-		#echo $cols $rows
-		#echo "rows: $rows"
-
-		newrow=$(($cols))
-		#echo "DEBUG: newrow = $newrow"
-			for ((j=1; j<=$newrow; j++))
+			for ((j=1; j<=$cols; j++))
 			do
-				# augend=$(echo "$cols_nums1" | cut -d $'\n' -f $j)
-				# append=$(echo "$cols_nums2" | cut -d $'\n' -f $j)
-
-				cols_nums1=$(cut -f $j <<< "$left_matrix")
-				cols_nums2=$(cut -f $j <<< "$right_matrix")
-
-				# echo "index $j"
-				# echo "First file: $augend"
-				# echo "Second file: $append"
+				cols_nums1=$(cut -f $j <<< "$left_matrix") #takes the first number of the matrix from left to right
+				cols_nums2=$(cut -f $j <<< "$right_matrix") #for both files
 				
 				sum=$(($cols_nums1+$cols_nums2))
-				#echo "$augend + $append = $sum"
-
-				#printf "%d\t" $sum
-				#echo $sum
 
 				#printing sum
-				if [ $j = $cols ] #adds a newline at the end
+				if [ $j = $cols ]
 				then 
 					printf "%s\n" $sum
 
-				else #adds tabs
+				else
 					printf "%s\t" $sum
 
 				fi
-				
 			done
-			#printf '\n'
 
 		done 3<"$1" 4<"$2"
 
