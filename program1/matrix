@@ -156,10 +156,12 @@ add() {
 			do
 				augend=$(echo "$cols_nums1" | cut -d $'\n' -f $j)
 				append=$(echo "$cols_nums2" | cut -d $'\n' -f $j)
-				echo "index $j"
+				# echo "index $j"
 				# echo "First file: $augend"
 				# echo "Second file: $append"
-				#echo "$augend + $append"
+				# echo "$augend + $append"
+				sum=`expr $augend + $append`
+				printf '%s\t' $sum
 			done
 			printf '\n'
 
