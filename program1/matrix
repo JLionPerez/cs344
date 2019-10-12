@@ -4,7 +4,7 @@
 
 #This function prints the dimensions of a matrix
 dims() {
-	if [ $# -gt "1" ]; #if number of files is greater than one
+	if [ $# -gt 1 ]; #if number of files is greater than one
 	then
 		echo "error, too many arguments" 1>&2 #1>&2 means stderr
 		return 1 #anything greater than 0 means false
@@ -24,16 +24,13 @@ dims() {
 
 		#prints rows and columns
 		echo $rows $cols
-
 		return 0 #means true
+
 	fi
 }
 
 transpose() {
-	matrix=""
-	next=""
-
-	if [ $# -gt "1" ]; 
+	if [ $# -gt 1 ]; 
 	then
 		echo "error, too many arguments" 1>&2 
 		return 1 
@@ -50,15 +47,191 @@ transpose() {
 		#for each columns in row
 		for ((i=1; i<=$cols; i++))
 		do
-
 			cols_nums=$(cut -f $i $1) #has the newline included, still has spaces
 			echo $cols_nums | tr " " "\t" #replaces spaces with tabs
 		done
 
-		#echo $matrix $next
+		return 0
+
+	fi
+}
+
+mean() {
+	if [ $# -gt 1 ]; 
+	then
+		echo "error, too many arguments" 1>&2 
+		return 1 
+
+	elif [ $# -eq 1 ] && [ ! -r $1 ] 
+	then
+		echo "error, file unreadable" 1>&2
+		return 1
+	
+	else
+		firstL=$(head -n 1 $1)
+		cols=$(echo $firstL | wc -w)
+		rows=$(wc -l < $1)
+
+		#iterate through each column
+		for ((i=1; i<=cols; i++))
+		do
+			mean=0
+			sum=0
+			cols_nums=$(cut -f $i $1)
+
+			#iterate through each row of each column
+			for j in $cols_nums;
+			do
+				sum=`expr $sum + $j` #add numbers
+
+			done
+
+			#divide sum by rows
+			mean=$((($sum + ($rows/2)*( ($sum>0)*2-1 )) / $rows))
+
+			#printing means
+			if [ $i = $cols ] #adds a newline at the end
+			then 
+				printf "%s\n" $mean
+
+			else #adds tabs
+				printf "%s\t" $mean
+
+			fi
+		done
 
 		return 0
 	fi
+}
+
+add() {
+	#first matrix rows and cols
+	firstL1=$(head -n 1 $1)
+	cols1=$(echo $firstL1 | wc -w)
+	rows1=$(wc -l < $1)
+
+	#second matrix rows and cols
+	firstL2=$(head -n 1 $2)
+	cols2=$(echo $firstL2 | wc -w)
+	rows2=$(wc -l < $2)
+
+	if [ $# -gt 2 ];
+	then
+		echo "error, too many arguments" 1>&2
+		return 1
+
+	elif  { [ ! -r $1 ] || [ ! -r $2 ]; } && [ $# -eq 2 ]
+	then
+		echo "error, file unreadable" 1>&2
+		return 1
+
+	#if columns and rows of both matrices are not the same send error
+	elif [ $cols1 != $cols2 ] || [ $rows1 != $rows2 ]
+	then 
+		echo "error, dimensions are not the same" 1>&2
+		return 1
+
+	else
+		firstL1=$(head -n 1 $1)
+		cols=$(echo $firstL1 | wc -w)
+
+		while read -u 3 left_matrix && read -u 4 right_matrix
+		do
+			for ((j=1; j<=$cols; j++))
+			do
+				cols_nums1=$(cut -f $j <<< "$left_matrix") #takes the first number of the matrix from left to right
+				cols_nums2=$(cut -f $j <<< "$right_matrix") #for both files
+				
+				sum=$(($cols_nums1+$cols_nums2))
+
+				#printing sum
+				if [ $j = $cols ]
+				then 
+					printf "%s\n" $sum
+
+				else
+					printf "%s\t" $sum
+
+				fi
+			done
+
+		done 3<"$1" 4<"$2"
+
+		return 0
+	fi
+}
+
+multiply() {
+	#first matrix rows and cols
+	firstL1=$(head -n 1 $1)
+	cols1=$(echo $firstL1 | wc -w)
+	rows1=$(wc -l < $1)
+
+	#second matrix rows and cols
+	firstL2=$(head -n 1 $2)
+	cols2=$(echo $firstL2 | wc -w)
+	rows2=$(wc -l < $2)
+
+	#echo $cols1 $rows2
+
+	if [ $# -gt 2 ];
+	then
+		echo "error, too many arguments" 1>&2
+		return 1
+
+	elif  { [ ! -r $1 ] || [ ! -r $2 ]; } && [ $# -eq 2 ]
+	then
+		echo "error, file unreadable" 1>&2
+		return 1
+
+	elif [ $cols1 != $rows2 ]
+	then
+		echo "error, m1 cols and m2 rows are not the same" 1>&2
+		return 1
+
+	else
+		transpose $2 > "right_trans_temp$$"
+
+		while read -u 3 left_matrix
+		do
+			j=0
+			while read -u 4 right_matrix
+			do
+				#for loop to iterate through rows at the same time
+				#put into sum
+				((j++))
+				sum=0
+				for ((i=1; i<=$cols1; i++))
+				do
+					row1_element=$(cut -f $i <<< "$left_matrix")
+					row2_element=$(cut -f $i <<< "$right_matrix")
+
+					product=$(($row1_element*$row2_element))
+
+					#echo "$row1_element * $row2_element = $product"
+					sum=$(($sum+$product))
+				done
+				#echo $sum
+				#printf '\n'
+
+				if [ $j = $cols2 ]
+				then 
+					printf "%s\n" $sum
+
+				else
+					printf "%s\t" $sum
+
+				fi
+
+			done 4<"right_trans_temp$$"
+		done 3<"$1"
+
+		return 0
+	fi
+}
+
+trap() {
+	echo "use this function to remove temp files"
 }
 
 #main
@@ -82,16 +255,14 @@ then
 	fi #end for nested if statements
 
 #functions with two parameters
-elif [ "$1" =  "add" ] || [ "$1" = "multiply" ];
+elif [ "$1" = "add" ] || [ "$1" = "multiply" ];
 then
 	if [ $# = "3" ] #if there's three arguments
 	then
 		$1 $2 $3 #function, file1.txt, file2.txt
 
-	# elif, if function was only provided
-
-	else #if number of arguments is greater than three
-		echo "error, too many arguments" 1>&2
+	else #if there is not three arguments
+		echo "error, invalid amount of arguments" 1>&2
 		exit 1
 	fi
 
