@@ -162,6 +162,18 @@ add() {
 }
 
 multiply() {
+	#first matrix rows and cols
+	firstL1=$(head -n 1 $1)
+	cols1=$(echo $firstL1 | wc -w)
+	rows1=$(wc -l < $1)
+
+	#second matrix rows and cols
+	firstL2=$(head -n 1 $2)
+	cols2=$(echo $firstL2 | wc -w)
+	rows2=$(wc -l < $2)
+
+	#echo $cols1 $rows2
+
 	if [ $# -gt 2 ];
 	then
 		echo "error, too many arguments" 1>&2
@@ -172,24 +184,35 @@ multiply() {
 		echo "error, file unreadable" 1>&2
 		return 1
 
+	elif [ $cols1 != $rows2 ]
+	then
+		echo "error, m1 cols and m2 rows are not the same" 1>&2
+		return 1
+
 	else
 		transpose $2 > "right_trans_temp$$"
-		
-		# i=1 #incrementors
-		# j=1
-		sum=0
 
 		while read -u 3 left_matrix
 		do
-			row1_element=$(cut -f $i <<< "$left_matrix")
-			echo $row1_element
-
-			#echo $left_matrix
 			while read -u 4 right_matrix
 			do
-
 				#for loop to iterate through rows at the same time
 				#put into sum
+				sum=0
+				for ((i=1; i<=$cols1; i++))
+				do
+					row1_element=$(cut -f $i <<< "$left_matrix")
+					row2_element=$(cut -f $i <<< "$right_matrix")
+
+					product=$(($row1_element*$row2_element))
+
+					echo "$row1_element * $row2_element = $product"
+					sum=$(($sum+$product))
+
+					echo $sum
+				done
+				printf '\n'
+
 
 			done 4<"right_trans_temp$$"
 
