@@ -1,8 +1,14 @@
-# Matrix Calculator by Joelle Perez
+# Program name: Program 1 - Matrices
+# Author: Joelle Perez
+# Description: A program that calculates matrices.
+# Date: 14 October 2019
 
 #!/bin/bash -e
 
-#This function prints the dimensions of a matrix
+# Function name: dims()
+# Purpose: Finds the dimensions of a matrix
+# Arguments: 1 file
+# Returns: boolean
 dims() {
 	if [ $# -gt 1 ]; #if number of files is greater than one
 	then
@@ -29,6 +35,10 @@ dims() {
 	fi
 }
 
+# Function name: transpose()
+# Purpose: To transpose a matrix
+# Arguments: 1 file
+# Returns: boolean
 transpose() {
 	if [ $# -gt 1 ]; 
 	then
@@ -56,6 +66,10 @@ transpose() {
 	fi
 }
 
+# Function name: mean()
+# Purpose: Find the means of a matrix
+# Arguments: 1 file
+# Returns: boolean
 mean() {
 	if [ $# -gt 1 ]; 
 	then
@@ -104,6 +118,10 @@ mean() {
 	fi
 }
 
+# Function name: add()
+# Purpose: Adds two matrices together
+# Arguments: 2 files
+# Returns: boolean
 add() {
 	#first matrix rows and cols
 	firstL1=$(head -n 1 $1)
@@ -161,6 +179,10 @@ add() {
 	fi
 }
 
+# Function name: multiply()
+# Purpose: Multiply two matrices togther
+# Arguments: 2 files
+# Returns: boolean
 multiply() {
 	#first matrix rows and cols
 	firstL1=$(head -n 1 $1)
@@ -192,28 +214,28 @@ multiply() {
 	else
 		transpose $2 > "right_trans_temp$$"
 
+		#iterate through first matrix
 		while read -u 3 left_matrix
 		do
-			j=0
+			j=0 #resets counter
+
+			#iterate through second matrix
 			while read -u 4 right_matrix
 			do
-				#for loop to iterate through rows at the same time
-				#put into sum
 				((j++))
 				sum=0
+
+				#iterate through each cols
 				for ((i=1; i<=$cols1; i++))
 				do
 					row1_element=$(cut -f $i <<< "$left_matrix")
 					row2_element=$(cut -f $i <<< "$right_matrix")
 
 					product=$(($row1_element*$row2_element))
-
-					#echo "$row1_element * $row2_element = $product"
 					sum=$(($sum+$product))
 				done
-				#echo $sum
-				#printf '\n'
 
+				#print in new matrix form
 				if [ $j = $cols2 ]
 				then 
 					printf "%s\n" $sum
@@ -230,14 +252,10 @@ multiply() {
 	fi
 }
 
-trap() {
-	echo "use this function to remove temp files"
-}
-
-#main
+# main, calls functions
 datafilepath="datafile$$" #gets user inputted matrix
 
-#functions with single parameters
+# functions with single parameters
 if [ "$1" = "dims" ] || [ "$1" = "transpose" ] || [ "$1" = "mean" ];
 then
 	if [ $# = "2" ] #if there's two arguments
@@ -254,7 +272,7 @@ then
 		exit 1
 	fi #end for nested if statements
 
-#functions with two parameters
+# functions with two parameters
 elif [ "$1" = "add" ] || [ "$1" = "multiply" ];
 then
 	if [ $# = "3" ] #if there's three arguments
@@ -269,4 +287,4 @@ then
 else
 	echo "Error, function not found" 1>&2
 	exit 1
-fi #end for outer if statements
+fi # end for outer if statements
