@@ -3,7 +3,7 @@
 #include <sys/stat.h>
 #include <time.h>
 
-char* randomize(char *arr[]);
+int randomize();
 
 int main() {
 	srand(time(NULL));
@@ -31,8 +31,18 @@ int main() {
 	return 0;
 }
 
-char* randomize(char *arr[]) {
+int randomize() {
 	int i = rand() % 9, j = rand() % 9;
+
+	if(i != j) {
+		return i;
+	}
+
+	else {
+		i = rand() % 9;
+	}
+ 
+	/*int i = rand() % 9, j = rand() % 9;
 	char *temp = arr[i];
 
 	arr[i] = arr[j];
@@ -40,7 +50,7 @@ char* randomize(char *arr[]) {
 
 	printf("temp: %s\n", temp);
 	printf("%s\n", arr[i]);
-	printf("%s\n", arr[j]);
+	printf("%s\n", arr[j]);*/
 	/*printf("%d\n", i);*/
 	/*printf("%d\n", j);*/
 }
