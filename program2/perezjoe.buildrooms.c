@@ -4,16 +4,19 @@
 
 int main() {
 
-	/*printf("Hello, Joelle. I've been birthed.\n");*/
-
+	FILE * fp;
 	int pid = getpid(); /*process ID of rooms*/
-	char dir_name[300];	/*director to rooms*/
+	int i = 0;
+	char dir_name[300];	/*directory to rooms*/
+	char * 
 
-	sprintf(dir_name, "perezjoe.rooms.%d", pid); /*makes name of directory*/
+	sprintf(dir_name, "perezjoe.rooms.%d", pid); /*makes name of directory; change to include room*/
 	mkdir(dir_name, 0777);	/*makes directory with all permissions*/
 
-	printf("...\n");
-	printf("Directory made.\n");
+	/*printf("...\n");
+	printf("Directory made.\n");*/
+
+	/*fp = fopen (, "w");*/
 
 	return 0;
 }
