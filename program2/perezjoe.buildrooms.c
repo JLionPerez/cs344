@@ -13,14 +13,14 @@ struct room {
 };
 
 void make_dir_files(char *arr[], struct room *list);
-/*void write_into_file(FILE *file, struct room *list);*/
 void shuffle(char *arr[]);
 void form_structs(char *arr[], struct room *list);
+void write_connections(FILE *file, char path, struct room *list);
 
 /*connection functions*/
-bool graphFull();
-void addRandConnect();
-struct room getRandRoom();
+bool graphFull(struct room *list);
+void addRandConnect(struct room *list);
+struct room getRandRoom(struct room *list);
 bool canAddConnect(struct room c);
 bool connectionExists(struct room a, struct room c);
 void connectRoom(struct room a, struct room b);
@@ -29,23 +29,23 @@ bool sameRoom(struct room a, struct room b);
 int main() {
 	srand(time(NULL));
 	char *room_names[] = {"Bentley", "Lacey", "Kookie", "Coco", "Eggplant", "Mango", "Joe", "Elle", "Tabs", "Alien"};
-	struct room *room_list = (struct room *)malloc(sizeof(struct room) * 7);
+	struct room room_list[7];
 
 	shuffle(room_names); /*shuffles list of names*/
 	form_structs(room_names, room_list); /*function to assign each name and room type to a struct room*/
 	
-	while (graphFull(room_list) == false) {
-		addRandConnect();
-	}
+	/*while (graphFull(room_list) == false) {
+		addRandConnect(room_list);
+	}*/
 
 	make_dir_files(room_names, room_list); /*makes files in directory*/
 
 	/*temporary, prints rooms' name and type*/
-	/*int i;
+	int i;
 	for (i = 0; i < 7; i++) {
 		printf("Room %d is %s and type is %s.\n", i, room_list[i].name, room_list[i].room_type);
 	}
-	printf("\n");*/
+	printf("\n");
 
 	return 0;
 }
@@ -63,11 +63,11 @@ bool graphFull(struct room *list) {
 	return true;
 }
 
-void addRandConnect() {
+void addRandConnect(struct room *list) {
 	struct room a, b;
 
 	while(true) {
-		a = getRandRoom();
+		a = getRandRoom(list);
 
 		if(canAddConnect(a) == true) {
 			break;
@@ -75,15 +75,15 @@ void addRandConnect() {
 	}
 
 	do {
-		b = getRandRoom();
+		b = getRandRoom(list);
 	} while(canAddConnect(b) == false || sameRoom(a, b) == true || connectionExists(a, b) == true);
 	
 	connectRoom(a, b);
 	connectRoom(b, a);
 }
 
-struct room getRandRoom() {
-	
+struct room getRandRoom(struct room *list) {
+
 }
 
 bool canAddConnect(struct room c) {
