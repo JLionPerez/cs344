@@ -30,17 +30,17 @@ bool sameRoom(struct room a, struct room b);
 
 int main() {
 	srand(time(NULL));
-	char *room_names[] = {"Bentley", "Lacey", "Kookie", "Coco", "Eggplant", "Mango", "Joe", "Elle", "Tabs", "Alien"};
+	char *room_names[] = {"Bentley", "Lacey", "Kookie", "Coco", "Egg", "Mango", "Joe", "Elle", "Tabs", "Alien"};
 	struct room room_list[7]; /*actual rooms*/
 
 	shuffle(room_names); /*shuffles list of names*/
 	form_structs(room_names, room_list); /*function to assign each name and room type to a struct room: id, name, room type*/
 	initialize(room_list); /*set rooms to default elements, num_connections, room_connections*/
 
-	while (graphFull(room_list) == false) { /*adding connections*/
-		addRandConnect(room_list);
+	/*while (graphFull(room_list) == false) { /*adding connections*/
+		/*addRandConnect(room_list);
 		break;
-	}
+	}*/
 
 	printf("Connections made. Starting files.\n");
 
