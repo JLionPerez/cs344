@@ -9,9 +9,11 @@ struct room {
 	char *room_type;
 	int num_connections;
 	int room_id;
-	int room_connections[6]; /*bools, 1 is true, 0 is false*/
+	int room_connections[7]; /*bools, 1 is true, 0 is false*/
 };
 
+void initialize(struct room *list);
+void print_info(struct room *list);
 void make_dir_files(char *arr[], struct room *list);
 void shuffle(char *arr[]);
 void form_structs(char *arr[], struct room *list);
@@ -29,14 +31,18 @@ bool sameRoom(struct room a, struct room b);
 int main() {
 	srand(time(NULL));
 	char *room_names[] = {"Bentley", "Lacey", "Kookie", "Coco", "Eggplant", "Mango", "Joe", "Elle", "Tabs", "Alien"};
-	struct room room_list[7];
+	struct room room_list[7]; /*actual rooms*/
 
 	shuffle(room_names); /*shuffles list of names*/
-	form_structs(room_names, room_list); /*function to assign each name and room type to a struct room*/
-	
-	/*while (graphFull(room_list) == false) {
+	form_structs(room_names, room_list); /*function to assign each name and room type to a struct room: id, name, room type*/
+	initialize(room_list); /*set rooms to default elements, num_connections, room_connections*/
+
+	while (graphFull(room_list) == false) { /*adding connections*/
 		addRandConnect(room_list);
-	}*/
+		break;
+	}
+
+	printf("Connections made. Starting files.\n");
 
 	make_dir_files(room_names, room_list); /*makes files in directory*/
 
@@ -51,18 +57,6 @@ int main() {
 }
 
 /*connections*/
-bool graphFull(struct room *list) {
-	int i;
-
-	for (i = 0; i < 7; i++) {
-		if(list[i].num_connections < 3) {
-			return false;
-		}
-	}
-
-	return true;
-}
-
 void addRandConnect(struct room *list) {
 	struct room a, b;
 
@@ -80,6 +74,35 @@ void addRandConnect(struct room *list) {
 	
 	connectRoom(a, b);
 	connectRoom(b, a);
+}
+
+void print_info(struct room *list) {
+	int i;
+
+	for(i = 0; i < 7; i++) {
+		printf("ID %d\nRoom name: %s\n", list[i].room_id, list[i].name);
+	}
+}
+
+void initialize(struct room *list) {
+	int i;
+
+	for (i = 0; i < 7; i++) {
+		list[i].num_connections = 0; /*every room has a starting 0 connections*/
+		list[i].room_connections[i] = 0; /*fill each connection as false*/
+	}
+}
+
+bool graphFull(struct room *list) {
+	int i;
+
+	for (i = 0; i < 7; i++) {
+		if(list[i].num_connections < 3) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 struct room getRandRoom(struct room *list) {
