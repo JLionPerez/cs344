@@ -17,7 +17,6 @@ void print_info(struct room *list);
 void make_dir_files(char *arr[], struct room *list);
 void shuffle(char *arr[]);
 void form_structs(char *arr[], struct room *list);
-void write_connections(FILE *file, char path, struct room *list);
 
 /*connection functions*/
 bool graphFull(struct room *list);
@@ -37,17 +36,18 @@ int main() {
 	form_structs(room_names, room_list); /*function to assign each name and room type to a struct room: id, name, room type*/
 	initialize(room_list); /*set rooms to default elements, num_connections, room_connections*/
 
-	addRandConnect(room_list);
+	/*addRandConnect(room_list);*/
 
 	/*adding connections*/
-	/*while (graphFull(room_list) == false) {
+	while (graphFull(room_list) == false) {
 		addRandConnect(room_list);
-	}*/
+		printf("Running\n");
+	}
 
-	/*print_info(room_list); /*prints everything else but the connection names for each room*/
-	/*printf("\n");
+	print_info(room_list); /*prints everything else but the connection names for each room*/
+	printf("\n");
 
-	printf("Connections made. Starting files.\n");
+	printf("Connections made. Making files.\n");
 
 	make_dir_files(room_names, room_list); /*makes files in directory*/
 
@@ -59,36 +59,9 @@ void addRandConnect(struct room *list) {
 	struct room *a;
 	struct room *b;
 
-	/*test for getRandRoom()*/
-	a = getRandRoom(list);
-	printf("Room's name: %s\nRoom ID: %d\nRoom type: %s\nConnections: %d\n", a->name, a->room_id, a->room_type, a->num_connections);
+	printf("In addRandConnect\n");
 
-	b = getRandRoom(list);
-	printf("Room's name: %s\nRoom ID: %d\nRoom type: %s\nConnections: %d\n", b->name, b->room_id, b->room_type, b->num_connections);
-
-	printf("\n");
-
-	/*test for canAddConnect()*/
-	if(canAddConnect(a) == true) {
-		printf("Room %s can have another connection.\n", a->name);
-	}
-
-	if(canAddConnect(b) == true) {
-		printf("Room %s can have another connection.\n", b->name);
-	}
-
-	printf("\n");
-
-	/*test for sameRoom()*/
-	if(sameRoom(a, b) == true) {
-		printf("Same rooms.\n");
-	}
-
-	else {
-		printf("Different rooms.\n");
-	}
-
-	/*while(true) {
+	while(true) {
 		a = getRandRoom(list);
 
 		if(canAddConnect(a) == true) {
@@ -101,7 +74,8 @@ void addRandConnect(struct room *list) {
 	} while(canAddConnect(b) == false || sameRoom(a, b) == true || connectionExists(a, b) == true);
 	
 	connectRoom(a, b);
-	connectRoom(b, a);*/
+	/*connectRoom(b, a);*/
+
 }
 
 void print_info(struct room *list) {
@@ -113,11 +87,14 @@ void print_info(struct room *list) {
 }
 
 void initialize(struct room *list) {
-	int i;
+	int i, j;
 
 	for (i = 0; i < 7; i++) {
 		list[i].num_connections = 0; /*every room has a starting 0 connections*/
-		list[i].room_connections[i] = 0; /*fill each connection as false*/
+
+		for (j = 0; j < 7; j++) {
+			list[i].room_connections[j] = 0; /*fill each connection as false*/
+		}
 	}
 }
 
@@ -125,7 +102,7 @@ bool graphFull(struct room *list) {
 	int i;
 
 	for (i = 0; i < 7; i++) {
-		if(list[i].num_connections < 3 && list[i].num_connections > 6) {
+		if(list[i].num_connections < 3 || list[i].num_connections > 6) {
 			return false;
 		}
 	}
@@ -139,7 +116,7 @@ struct room *getRandRoom(struct room *list) {
 }
 
 bool canAddConnect(struct room *c) {
-	if(c->num_connections <= 6) {
+	if(c->num_connections < 6) {
 		return true;
 	}
 
@@ -147,7 +124,11 @@ bool canAddConnect(struct room *c) {
 }
 
 bool connectionExists(struct room *a, struct room *b) {
+	if ((a->room_connections[b->room_id] == 1) && (b->room_connections[a->room_id] == 1)) { /*if they are true at the index/id of the room_connections for both rooms, then they are connected*/
+		return true;
+	}
 
+	return false;
 }
 
 void connectRoom(struct room *a, struct room *b) {
@@ -191,7 +172,7 @@ void form_structs(char *arr[], struct room *list) {
 
 void make_dir_files(char *arr[], struct room *list) {
 	FILE * fp;
-	int i;
+	int i, j;
 	int pid = getpid(); /*process ID of rooms*/
 	char dir_name[300];	/*directory to rooms*/
 	char dir_path[300];
@@ -207,15 +188,15 @@ void make_dir_files(char *arr[], struct room *list) {
 		fp = fopen (dir_path, "w"); /*opens file*/
 		fprintf(fp, "ROOM NAME: %s\n",list[i].name);
 		/*have a function to print out the connections for each room ex. write_connections(FILE *file, char path, struct room *list)*/
+		/*write_connections(fp, dir_path, list);*/
+		for (j = 0; j < list[i].num_connections; j++) {
+			fprintf(fp, "CONNECTION %d: %s\n", j+1, list[j].name);
+		}
+		/*fprintf(fp, "%d\n", list[i].num_connections);*/
 		fprintf(fp, "ROOM TYPE: %s", list[i].room_type);
 		fclose(fp); /*close file*/
 	}
 }
-
-/*void write_into_file(FILE *file, struct room *list) {
-	file = fopen (dir_path, "w"); /*opens file*/
-	/*fclose(file); /*close file*/
-/*}*/
 
 /*does not need a reference, passing in a pointer gets dereferenced so the original array was changed*/
 void shuffle (char *arr[]) {
