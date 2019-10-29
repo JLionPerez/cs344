@@ -22,11 +22,11 @@ void write_connections(FILE *file, char path, struct room *list);
 /*connection functions*/
 bool graphFull(struct room *list);
 void addRandConnect(struct room *list);
-struct room getRandRoom(struct room *list);
-bool canAddConnect(struct room c);
-bool connectionExists(struct room a, struct room c);
-void connectRoom(struct room a, struct room b);
-bool sameRoom(struct room a, struct room b);
+struct room *getRandRoom(struct room *list);
+bool canAddConnect(struct room *c);
+bool connectionExists(struct room *a, struct room *b);
+void connectRoom(struct room *a, struct room *b);
+bool sameRoom(struct room *a, struct room *b);
 
 int main() {
 	srand(time(NULL));
@@ -37,30 +37,58 @@ int main() {
 	form_structs(room_names, room_list); /*function to assign each name and room type to a struct room: id, name, room type*/
 	initialize(room_list); /*set rooms to default elements, num_connections, room_connections*/
 
-	/*while (graphFull(room_list) == false) { /*adding connections*/
-		/*addRandConnect(room_list);
-		break;
+	addRandConnect(room_list);
+
+	/*adding connections*/
+	/*while (graphFull(room_list) == false) {
+		addRandConnect(room_list);
 	}*/
+
+	/*print_info(room_list); /*prints everything else but the connection names for each room*/
+	/*printf("\n");
 
 	printf("Connections made. Starting files.\n");
 
 	make_dir_files(room_names, room_list); /*makes files in directory*/
-
-	/*temporary, prints rooms' name and type*/
-	int i;
-	for (i = 0; i < 7; i++) {
-		printf("Room %d is %s and type is %s.\n", i, room_list[i].name, room_list[i].room_type);
-	}
-	printf("\n");
 
 	return 0;
 }
 
 /*connections*/
 void addRandConnect(struct room *list) {
-	struct room a, b;
+	struct room *a;
+	struct room *b;
 
-	while(true) {
+	/*test for getRandRoom()*/
+	a = getRandRoom(list);
+	printf("Room's name: %s\nRoom ID: %d\nRoom type: %s\nConnections: %d\n", a->name, a->room_id, a->room_type, a->num_connections);
+
+	b = getRandRoom(list);
+	printf("Room's name: %s\nRoom ID: %d\nRoom type: %s\nConnections: %d\n", b->name, b->room_id, b->room_type, b->num_connections);
+
+	printf("\n");
+
+	/*test for canAddConnect()*/
+	if(canAddConnect(a) == true) {
+		printf("Room %s can have another connection.\n", a->name);
+	}
+
+	if(canAddConnect(b) == true) {
+		printf("Room %s can have another connection.\n", b->name);
+	}
+
+	printf("\n");
+
+	/*test for sameRoom()*/
+	if(sameRoom(a, b) == true) {
+		printf("Same rooms.\n");
+	}
+
+	else {
+		printf("Different rooms.\n");
+	}
+
+	/*while(true) {
 		a = getRandRoom(list);
 
 		if(canAddConnect(a) == true) {
@@ -73,14 +101,14 @@ void addRandConnect(struct room *list) {
 	} while(canAddConnect(b) == false || sameRoom(a, b) == true || connectionExists(a, b) == true);
 	
 	connectRoom(a, b);
-	connectRoom(b, a);
+	connectRoom(b, a);*/
 }
 
 void print_info(struct room *list) {
 	int i;
 
 	for(i = 0; i < 7; i++) {
-		printf("ID %d\nRoom name: %s\n", list[i].room_id, list[i].name);
+		printf("ID %d\nRoom name: %s\nRoom type: %s\n# Connections: %d\n", list[i].room_id, list[i].name, list[i].room_type, list[i].num_connections);
 	}
 }
 
@@ -97,7 +125,7 @@ bool graphFull(struct room *list) {
 	int i;
 
 	for (i = 0; i < 7; i++) {
-		if(list[i].num_connections < 3) {
+		if(list[i].num_connections < 3 && list[i].num_connections > 6) {
 			return false;
 		}
 	}
@@ -105,28 +133,37 @@ bool graphFull(struct room *list) {
 	return true;
 }
 
-struct room getRandRoom(struct room *list) {
+struct room *getRandRoom(struct room *list) {
+	int rand_index = rand() % 7;
+	return &list[rand_index];
+}
+
+bool canAddConnect(struct room *c) {
+	if(c->num_connections <= 6) {
+		return true;
+	}
+
+	return false;
+}
+
+bool connectionExists(struct room *a, struct room *b) {
 
 }
 
-bool canAddConnect(struct room c) {
+void connectRoom(struct room *a, struct room *b) {
+	a->room_connections[b->room_id] = 1; /*say true for index*/
+	b->room_connections[a->room_id] = 1;
 
+	a->num_connections++; /*increment # connections*/
+	b->num_connections++;
 }
 
-bool connectionExists(struct room a, struct room b) {
+bool sameRoom(struct room *a, struct room *b) {
+	if(a->room_id == b->room_id) {
+		return true;
+	}
 
-}
-
-void connectRoom(struct room a, struct room b) {
-	a.room_connections[b.room_id] = 1; /*say true for index*/
-	b.room_connections[a.room_id] = 1;
-
-	a.num_connections++;
-	b.num_connections++;
-}
-
-bool sameRoom(struct room a, struct room b) {
-
+	return false;
 }
 
 /*assigns names and room type*/
