@@ -8,56 +8,56 @@
 #include <string.h>
 #include <unistd.h>
 
-/*struct room {
+struct room {
 	char *name;
 	char *room_type;
 	int num_connections;
 	int room_id;
 	int room_connections[7];
-};*/
+};
+
+void find_dir(char *dir);
+void cmp_time();
 
 int main() {
+    /*cited from 2.4 Manipulating Directories Lectures https://oregonstate.instructure.com/courses/1738955/pages/2-dot-4-manipulating-directories*/
+    char rooms_dir[300]; /*gets the name of the directory for latest time*/
+    memset(rooms_dir, '\0', sizeof(rooms_dir));
+
+    find_dir(rooms_dir);
+    printf("%s\n", rooms_dir);
+
+    
+
+    return 0;
+}
+
+/*cited from 2.4 Manipulating Directories Lectures https://oregonstate.instructure.com/courses/1738955/pages/2-dot-4-manipulating-directories*/
+void find_dir(char *dir) {
     char my_prefix[20] = "perezjoe.rooms.";
-    char room_dir[300];
     DIR *current_dir = opendir(".");
     struct dirent *entry;
     struct stat entry_info;
-    time_t recent_dir_time; /*st_mtime returns time/date which is also time_t*/
-
-    /*function to get current directory (because they have different directories in server)*/
+    int recent_dir_time = -1; /*st_mtime returns time/date which is also time_t*/
+    time_t display_time;
 
     if (current_dir > 0) {
         while((entry = readdir(current_dir)) != NULL) {
-            /*printf("%s\n", entry->d_name);*/
             if(strstr(entry->d_name, my_prefix) != NULL) {
                 stat(entry->d_name, &entry_info);
-                printf("Found directories with timestamps: %s %s", entry->d_name, ctime(&entry_info.st_mtime));
-                recent_dir_time = ctime(&entry_info.st_mtime);
+                printf("Found directories with timestamps: %s %s\n", entry->d_name, ctime(&entry_info.st_mtime));
+                
+                /*compares times*/
+                if((int)entry_info.st_mtime > recent_dir_time) {
+                    recent_dir_time = (int)entry_info.st_mtime;
+                    display_time = entry_info.st_mtime;
+                    memset(dir, '\0', sizeof(dir));
+                    strcpy(dir, entry->d_name);
+                    printf("Newer subdir: %s, new time: %s\n", entry->d_name, ctime(&entry_info.st_mtime));
+                }
             }
         }
+
         closedir(current_dir);
     }
-
-    /*if((current_dir = opendir(".")) != NULL) {
-        while((entry = readdir (current_dir) != NULL)) {
-            printf("%s\n", entry->d_name);
-        }
-        closedir(current_dir);
-    }
-
-    else {
-        perror("");
-        return EXIT_FAILURE;
-    }*/
-    /*char *dir_path = "perezjoe.rooms. *";
-    struct stat buf;
-    stat(dir_path, &buf);
-
-    int i;
-    for(i = 0; i < 2; i++) {
-        printf("File name: %s\n", dir_path);
-        printf("Latest modified time: %s", ctime(&buf.st_mtime));
-    }
-
-    return 0;*/
 }
