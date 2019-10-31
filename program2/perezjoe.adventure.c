@@ -12,22 +12,37 @@ struct room {
 	char *name;
 	char *room_type;
 	int num_connections;
-	int room_id;
+	/*int room_id;*/
 	int room_connections[7];
 };
 
 void find_dir(char *dir);
-void cmp_time();
 
 int main() {
-    /*cited from 2.4 Manipulating Directories Lectures https://oregonstate.instructure.com/courses/1738955/pages/2-dot-4-manipulating-directories*/
+    struct room room_list[7];
     char rooms_dir[300]; /*gets the name of the directory for latest time*/
     memset(rooms_dir, '\0', sizeof(rooms_dir));
 
     find_dir(rooms_dir);
-    printf("%s\n", rooms_dir);
+    printf("%s\n", rooms_dir); /*prints current directory*/
 
-    
+    printf("\n");
+
+    /*reiterating through the files in current directory*/
+    struct dirent *file_p;
+    DIR *dir = opendir(rooms_dir);
+
+    FILE *file;
+
+    while ((file_p = readdir(dir)) != NULL) {
+
+        if((strcmp(file_p->d_name, "..") != 0) && (strcmp(file_p->d_name, ".") != 0)) {
+            printf("%s\n", file_p->d_name);
+
+        }
+    }
+
+    closedir(dir);
 
     return 0;
 }
