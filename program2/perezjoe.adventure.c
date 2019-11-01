@@ -13,14 +13,16 @@ struct room {
 	char *room_type;
 	int num_connections;
 	/*int room_id;*/
-	char *room_connections[7]; /*grabs the names of the connections*/
+	char room_connections[7][100]; /*grabs the names of the connections*/
 };
 
 void find_dir(char *dir);
 void initialize(struct room *list);
+void print_info(struct room *list);
 
 int main() {
 	struct room room_list[7];
+	initialize(room_list);
 	char rooms_dir[300]; /*gets the name of the directory for latest time*/
 	memset(rooms_dir, '\0', sizeof(rooms_dir));
 
@@ -38,38 +40,68 @@ int main() {
 	char room_name[100];
 	char room_connection[100];
 	char room_type[100];
-	int i;
+	int i, k;
+	int j = 0;
 
 	/* read through directory's files*/
 	while ((file_p = readdir(dir)) != NULL) {
 
 		if((strcmp(file_p->d_name, "..") != 0) && (strcmp(file_p->d_name, ".") != 0)) {
 
-			for(i = 0; i < 7; i++) {
+			printf("File name: %s\n", file_p->d_name); /*prints file name*/
+			file = fopen(file_p->d_name, "r"); /*opens file*/
 
-				printf("File name: %s\n", file_p->d_name); /*prints file name*/
-				file = fopen(file_p->d_name, "r"); /*opens file*/
-
+				for(i = 0; i < 7; i++) {
 					while(fscanf(file, "ROOM NAME: %s\n", room_name) == 1){ 
 						printf("Room %s\n", room_name);
-
+						
+						room_list[i].name = room_name;
 					}
 
 					while(fscanf(file, "CONNECTION %*d: %s\n", room_connection) > 0) {
 						printf("Connection %s\n", room_connection);
+						room_list[i].num_connections++;
+
+						printf("chicken\n");
+
+						strcpy(room_list[i].room_connections[j], room_connection);
+						/*room_list[i].room_connections[j] = room_connection;*/
+						j++;
+
+						printf("duck\n");
 					}
+
+					/*for(j = 0; fscanf(file, "CONNECTION %*d: %s\n", room_connection_names[j]); j++) {
+						room_list[i].num_connections++;
+						printf("Connection %d\n", room_list[i].num_connections);
+					}*/
 
 					while(fscanf(file, "ROOM TYPE: %s\n", room_type) == 1) {
 						printf("Type %s\n", room_type);
-					}
 
-				fclose(file); /*close file*/
-			}
+						room_list[i].room_type = room_type;
+					}
+					
+					j = 0;
+
+					/*printf("\n");
+					printf("NUM CONNECTIONS: %d\n", room_list[i].num_connections);
+					printf("ROOM NAME: %s\n", room_list[i].name);
+					for (k = 0; k < room_list[i].num_connections; k++) {
+							printf("CONNECTION %d: %s\n", k+1, room_list[i].room_connections[k]);
+					}
+					printf("ROOM TYPE: %s\n", room_list[i].room_type);*/
+				}
+
+			fclose(file); /*close file*/
+			
 		}
 		printf("\n");
 	}
 
 	closedir(dir);
+
+	print_info(room_list);
 
 	return 0;
 }
@@ -81,8 +113,23 @@ void initialize(struct room *list) {
 		list[i].num_connections = 0; /*every room has a starting 0 connections*/
 
 		for (j = 0; j < 7; j++) {
-			list[i].room_connections[j] = '\0'; /*fill each connection as null terminator*/
+			/*list[i].room_connections[j] = '\0'; /*fill each connection as null terminator*/
+			memset(list[i].room_connections[j], '\0', sizeof(list[i].room_connections[j]));
 		}
+	}
+}
+
+void print_info(struct room *list) {
+	int i, j;
+	for (i = 0; i < 7; i++) {
+		printf("Name: %s\n", list[i].name);
+		printf("Num connections: %d\n", list[i].num_connections);
+
+		for(j = 0; j < list[i].num_connections; j++) {
+			printf("Connections %d: %s\n", j+1, list[i].room_connections[j]);
+		}
+
+		printf("Type: %s\n", list[i].room_type);
 	}
 }
 
