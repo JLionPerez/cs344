@@ -34,6 +34,8 @@ int main() {
     chdir(rooms_dir);
     FILE *file;
 
+    char *room_name;
+
     while ((file_p = readdir(dir)) != NULL) {
 
         if((strcmp(file_p->d_name, "..") != 0) && (strcmp(file_p->d_name, ".") != 0)) {
@@ -45,19 +47,20 @@ int main() {
                 while (f != EOF)  
                 { 
                     /* display contents of file on screen */ 
-                    putchar(f);  
-                
-                    f = getc(file); 
+                    /*putchar(f);  
+                    f = getc(file); */
+                    fscanf(file, "ROOM NAME: %s", room_name);
+                    fscanf(file, "CONNECTION %d: %s", room_connection);
                 } 
                 fflush(stdout);
                     
                 if (feof(file)) 
-                    printf("\n End of file reached."); 
+                    printf("\n End of file reached.\n"); 
                 else 
-                    printf("\n Something went wrong."); 
+                    printf("\n Something went wrong.\n"); 
                 fclose(file); 
                     
-                getchar(); 
+                /*getchar(); */
 
             /*fclose(file); /*close file*/
         }
