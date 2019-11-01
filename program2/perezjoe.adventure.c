@@ -19,71 +19,34 @@ struct room {
 void find_dir(char *dir);
 void initialize(struct room *list);
 void print_info(struct room *list);
+void read_files(char *new_dir, struct room *list);
+
+void get_room_id(struct room *list);
+void game();
 
 int main() {
 	struct room room_list[7];
 	initialize(room_list);
+
 	char rooms_dir[300]; /*gets the name of the directory for latest time*/
 	memset(rooms_dir, '\0', sizeof(rooms_dir));
 
 	find_dir(rooms_dir);
-	printf("%s\n", rooms_dir); /*prints current directory*/
-
-	printf("\n");
-
-	/*reiterating through the files in current directory*/
-	struct dirent *file_p;
-	DIR *dir = opendir(rooms_dir);
-	chdir(rooms_dir); /*change into new directory*/
-	FILE *file;
-
-	char room_name[100];
-	char room_connection[100];
-	char type[100];
-	int i = 0;
-	int k;
-	/*int j = 0;*/
-
-	/* read through directory's files*/
-	while ((file_p = readdir(dir)) != NULL) {
-
-		if((strcmp(file_p->d_name, "..") != 0) && (strcmp(file_p->d_name, ".") != 0)) {
-
-			printf("File name: %s\n", file_p->d_name); /*prints file name*/
-			file = fopen(file_p->d_name, "r"); /*opens file*/
-
-				while(fscanf(file, "ROOM NAME: %s\n", room_name) == 1){ 
-					printf("Room %s\n", room_name);
-					strcpy(room_list[i].name, room_name);
-				}
-
-				while(fscanf(file, "CONNECTION %*d: %s\n", room_connection) > 0) {
-					printf("Connection %s\n", room_connection);
-					strcpy(room_list[i].room_connections[room_list[i].num_connections], room_connection);
-					room_list[i].num_connections++;
-				}
-
-				printf("Number of connections for file %s is %d.\n", room_list[i].name, room_list[i].num_connections);
-
-				while(fscanf(file, "ROOM TYPE: %s\n", type) == 1) {
-					printf("Type %s\n", type);
-					strcpy(room_list[i].room_type, type);
-				}
-
-			room_list[i].room_id = i;
-			printf("ID %d\n", room_list[i].room_id);
-
-			i++;
-			fclose(file); /*close file*/
-		}
-		printf("\n");
-	}
-
-	closedir(dir);
-
-	/*j = 0;*/
+	read_files(rooms_dir, room_list);
 
 	print_info(room_list);
+
+	/*GAME*/
+	bool end_game = false;
+	int i;
+
+	while(end_game == false) {
+		for(i = 0; i < 7; i++) {
+			if(room_list[i].room_type == "START_ROOM") {
+
+			}
+		}
+	}
 
 	return 0;
 }
@@ -133,7 +96,7 @@ void find_dir(char *dir) {
 		while((entry = readdir(current_dir)) != NULL) {
 			if(strstr(entry->d_name, my_prefix) != NULL) {
 				stat(entry->d_name, &entry_info);
-				printf("Found directories with timestamps: %s %s\n", entry->d_name, ctime(&entry_info.st_mtime));
+				/*printf("Found directories with timestamps: %s %s\n", entry->d_name, ctime(&entry_info.st_mtime));*/
 				
 				/*compares times*/
 				if((int)entry_info.st_mtime > recent_dir_time) {
@@ -141,11 +104,58 @@ void find_dir(char *dir) {
 					display_time = entry_info.st_mtime;
 					memset(dir, '\0', sizeof(dir));
 					strcpy(dir, entry->d_name);
-					printf("Newer subdir: %s, new time: %s\n", entry->d_name, ctime(&entry_info.st_mtime));
+					/*printf("Newer subdir: %s, new time: %s\n", entry->d_name, ctime(&entry_info.st_mtime));*/
 				}
 			}
 		}
 
 		closedir(current_dir);
 	}
+}
+
+void read_files(char *new_dir, struct room *list) {
+	struct dirent *file_p;
+	DIR *dir = opendir(new_dir);
+	chdir(new_dir); /*change into new directory*/
+	FILE *file;
+
+	char room_name[100];
+	char room_connection[100];
+	char type[100];
+	int i = 0;
+	/* read through directory's files*/
+	while ((file_p = readdir(dir)) != NULL) {
+
+		if((strcmp(file_p->d_name, "..") != 0) && (strcmp(file_p->d_name, ".") != 0)) {
+
+			/*printf("File name: %s\n", file_p->d_name); /*prints file name*/
+			file = fopen(file_p->d_name, "r"); /*opens file*/
+
+				while(fscanf(file, "ROOM NAME: %s\n", room_name) == 1){ 
+					/*printf("Room %s\n", room_name);*/
+					strcpy(list[i].name, room_name);
+				}
+
+				while(fscanf(file, "CONNECTION %*d: %s\n", room_connection) > 0) {
+					/*printf("Connection %s\n", room_connection);*/
+					strcpy(list[i].room_connections[list[i].num_connections], room_connection);
+					list[i].num_connections++;
+				}
+
+				/*printf("Number of connections for file %s is %d.\n", room_list[i].name, room_list[i].num_connections);*/
+
+				while(fscanf(file, "ROOM TYPE: %s\n", type) == 1) {
+					/*printf("Type %s\n", type);*/
+					strcpy(list[i].room_type, type);
+				}
+
+			list[i].room_id = i;
+			/*printf("ID %d\n", room_list[i].room_id);*/
+
+			i++;
+			fclose(file); /*close file*/
+		}
+	}
+
+	closedir(dir);
 }

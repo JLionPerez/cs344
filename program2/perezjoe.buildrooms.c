@@ -64,7 +64,7 @@ void addRandConnect(struct room *list) {
 	while(true) {
 		a = getRandRoom(list);
 
-		printf("STRUCT ROOM: %s\n", a->name);
+		/* printf("STRUCT ROOM: %s\n", a->name); */
 
 		if(canAddConnect(a) == true) {
 			break;
@@ -76,15 +76,29 @@ void addRandConnect(struct room *list) {
 	} while(canAddConnect(b) == false || sameRoom(a, b) == true || connectionExists(a, b) == true);
 	
 	connectRoom(a, b);
+	printf("%s and %s are connected\n", a->name, b->name);
 	/*connectRoom(b, a);*/
 
 }
 
 void print_info(struct room *list) {
-	int i;
+	int i, j;
+	int count = 1;
 
 	for(i = 0; i < 7; i++) {
 		printf("ID %d\nRoom name: %s\nRoom type: %s\n# Connections: %d\n", list[i].room_id, list[i].name, list[i].room_type, list[i].num_connections);
+		printf("ROOM CONNECTIONS\n");
+
+		for(j = 0; j < 7; j++) {
+			if (list[i].room_connections[j] == 1) {
+							/* printf("%s: %d\n", list[i].name, list[i].room_connections[j]);*/
+				printf("Connection %d: %s\n", count, list[j].name);
+				count++;
+			}
+		}
+		count = 1;
+
+		printf("\n");
 	}
 }
 
@@ -140,8 +154,8 @@ void connectRoom(struct room *a, struct room *b) {
 	a->num_connections++; /*increment # connections*/
 	b->num_connections++;
 
-	printf("ROOM A: %s\n", a->name);
-	printf("ROOM B: %s\n", b->name);
+	/*printf("ROOM A: %s\n", a->name);
+	printf("ROOM B: %s\n", b->name);*/
 	printf("\n");
 }
 
@@ -182,10 +196,10 @@ void make_dir_files(char *arr[], struct room *list) {
 	int pid = getpid(); /*process ID of rooms*/
 	char dir_name[300];	/*directory to rooms*/
 	char dir_path[300];
-
+	int countthis = 1;
 	sprintf(dir_name, "perezjoe.rooms.%d", pid); /*makes name of directory; change to include room*/
 	mkdir(dir_name, 0777);	/*makes directory with all permissions*/
-
+	
 	/*creates each file*/
 	for (i = 0; i < 7; i++) {
 		sprintf(dir_path, "perezjoe.rooms.%d/%s", pid, arr[i]); /*adds file name to dir path*/
@@ -195,9 +209,13 @@ void make_dir_files(char *arr[], struct room *list) {
 		fprintf(fp, "ROOM NAME: %s\n",list[i].name);
 		/*have a function to print out the connections for each room ex. write_connections(FILE *file, char path, struct room *list)*/
 		/*write_connections(fp, dir_path, list);*/
-		for (j = 0; j < list[i].num_connections; j++) {
-			fprintf(fp, "CONNECTION %d: %s\n", j+1, list[j].name);
+		for (j = 0; j < 7; j++) {
+			if (list[i].room_connections[j] == 1) {
+				fprintf(fp, "CONNECTION %d: %s\n", countthis, list[j].name);
+				countthis++;
+			}
 		}
+		countthis = 1;
 		/*fprintf(fp, "%d\n", list[i].num_connections);*/
 		fprintf(fp, "ROOM TYPE: %s", list[i].room_type);
 		fclose(fp); /*close file*/
