@@ -12,7 +12,7 @@ struct room {
 	char *name;
 	char *room_type;
 	int num_connections;
-	/*int room_id;*/
+	int room_id; /*used to move through room*/
 	char room_connections[7][100]; /*grabs the names of the connections*/
 };
 
@@ -74,7 +74,6 @@ int main() {
 				}
 
 				printf("Number of connections for file %s is %d.\n", room_list[i].name, room_list[i].num_connections);
-				printf("ID %d\n", i);
 
 				/*for(j = 0; fscanf(file, "CONNECTION %*d: %s\n", room_connection_names[j]); j++) {
 					room_list[i].num_connections++;
@@ -97,6 +96,8 @@ int main() {
 						printf("CONNECTION %d: %s\n", k+1, room_list[i].room_connections[k]);
 				}
 				printf("ROOM TYPE: %s\n", room_list[i].room_type);*/
+			room_list[i].room_id = i;
+			printf("ID %d\n", room_list[i].room_id);
 			i++;
 			fclose(file); /*close file*/
 		}
@@ -116,6 +117,7 @@ void initialize(struct room *list) {
 	int i, j;
 
 	for (i = 0; i < 7; i++) {
+		list[i].room_id = 0;
 		list[i].num_connections = 0; /*every room has a starting 0 connections*/
 		list[i].name = (char*)malloc(8*sizeof(char));
 		list[i].room_type = (char*)malloc(10*sizeof(char));
