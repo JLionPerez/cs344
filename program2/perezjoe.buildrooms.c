@@ -1,3 +1,9 @@
+/*
+Author: Joelle Perez
+Date: 1 Nov 2019
+Program
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
