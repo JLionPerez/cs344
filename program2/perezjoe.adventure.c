@@ -22,6 +22,7 @@ void print_info(struct room *list);
 void read_files(char *new_dir, struct room *list);
 
 void get_room_id(struct room *list);
+void get_room(struct room *list);
 void game();
 
 int main() {
@@ -37,18 +38,32 @@ int main() {
 	print_info(room_list);
 
 	/*GAME*/
+	struct room *current_room;
 	bool end_game = false;
 	int i;
 
 	while(end_game == false) {
+		/*look through each room*/
+		printf("game start\n");
 		for(i = 0; i < 7; i++) {
 			if(room_list[i].room_type == "START_ROOM") {
+				current_room = &room_list[i];
 
+				printf("Current room: %s\n", current_room->name);
+				end_game = true;
 			}
 		}
 	}
 
 	return 0;
+}
+
+void get_room_id(struct room *list) {
+
+}
+
+void get_room(struct room *list) {
+
 }
 
 void initialize(struct room *list) {
