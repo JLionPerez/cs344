@@ -1,7 +1,8 @@
 /*
-Author: Joelle Perez
-Date: 1 Nov 2019
-Program
+* Title: Program 2 - Adventure
+* Description: Two files, one generating random rooms within a direcotry and the other playing an adventure game using the rooms.
+* Author: Joelle Perez
+* Date: 1 Nov 2019
 */
 
 #include <stdlib.h>
@@ -41,8 +42,6 @@ int main() {
 	shuffle(room_names); /*shuffles list of names*/
 	form_structs(room_names, room_list); /*function to assign each name and room type to a struct room: id, name, room type*/
 	initialize(room_list); /*set rooms to default elements, num_connections, room_connections*/
-
-	/*addRandConnect(room_list);*/
 
 	/*adding connections*/
 	while (graphFull(room_list) == false) {

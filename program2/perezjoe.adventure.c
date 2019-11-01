@@ -54,50 +54,25 @@ int main() {
 
 				while(fscanf(file, "ROOM NAME: %s\n", room_name) == 1){ 
 					printf("Room %s\n", room_name);
-					
-					/*room_list[i].name = room_name;
-					printf("%s\n", room_list[i].name);*/
 					strcpy(room_list[i].name, room_name);
 				}
 
 				while(fscanf(file, "CONNECTION %*d: %s\n", room_connection) > 0) {
 					printf("Connection %s\n", room_connection);
-
-					printf("copying\n");
-
 					strcpy(room_list[i].room_connections[room_list[i].num_connections], room_connection);
 					room_list[i].num_connections++;
-					/*room_list[i].room_connections[j] = room_connection;*/
-					/*j++;*/
-
-					printf("copied\n");
 				}
 
 				printf("Number of connections for file %s is %d.\n", room_list[i].name, room_list[i].num_connections);
 
-				/*for(j = 0; fscanf(file, "CONNECTION %*d: %s\n", room_connection_names[j]); j++) {
-					room_list[i].num_connections++;
-					printf("Connection %d\n", room_list[i].num_connections);
-				}*/
-
 				while(fscanf(file, "ROOM TYPE: %s\n", type) == 1) {
 					printf("Type %s\n", type);
-
-					/*room_list[i].room_type = type;*/
 					strcpy(room_list[i].room_type, type);
 				}
-				
-				/*j = 0;*/
 
-				/*printf("\n");
-				printf("NUM CONNECTIONS: %d\n", room_list[i].num_connections);
-				printf("ROOM NAME: %s\n", room_list[i].name);
-				for (k = 0; k < room_list[i].num_connections; k++) {
-						printf("CONNECTION %d: %s\n", k+1, room_list[i].room_connections[k]);
-				}
-				printf("ROOM TYPE: %s\n", room_list[i].room_type);*/
 			room_list[i].room_id = i;
 			printf("ID %d\n", room_list[i].room_id);
+
 			i++;
 			fclose(file); /*close file*/
 		}
@@ -123,7 +98,6 @@ void initialize(struct room *list) {
 		list[i].room_type = (char*)malloc(10*sizeof(char));
 
 		for (j = 0; j < 7; j++) {
-			/*list[i].room_connections[j] = '\0'; /*fill each connection as null terminator*/
 			memset(list[i].room_connections[j], '\0', sizeof(list[i].room_connections[j]));
 		}
 	}
@@ -133,6 +107,7 @@ void print_info(struct room *list) {
 	int i, j;
 	for (i = 0; i < 7; i++) {
 		printf("Name: %s\n", list[i].name);
+		printf("ID# %d\n", list[i].room_id);
 		printf("Num connections: %d\n", list[i].num_connections);
 
 		for(j = 0; j < list[i].num_connections; j++) {
