@@ -31,7 +31,7 @@ int main() {
     /*reiterating through the files in current directory*/
     struct dirent *file_p;
     DIR *dir = opendir(rooms_dir);
-
+    chdir(rooms_dir);
     FILE *file;
 
     while ((file_p = readdir(dir)) != NULL) {
@@ -39,6 +39,27 @@ int main() {
         if((strcmp(file_p->d_name, "..") != 0) && (strcmp(file_p->d_name, ".") != 0)) {
             printf("%s\n", file_p->d_name);
 
+            file = fopen(file_p->d_name, "r"); /*opens file*/
+            int f = getc(file);
+
+                while (f != EOF)  
+                { 
+                    /* display contents of file on screen */ 
+                    putchar(f);  
+                
+                    f = getc(file); 
+                } 
+                fflush(stdout);
+                    
+                if (feof(file)) 
+                    printf("\n End of file reached."); 
+                else 
+                    printf("\n Something went wrong."); 
+                fclose(file); 
+                    
+                getchar(); 
+
+            /*fclose(file); /*close file*/
         }
     }
 
