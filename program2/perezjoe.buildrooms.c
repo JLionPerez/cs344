@@ -1,3 +1,10 @@
+/*
+* Title: Program 2 - Adventure
+* Description: Two files, one generating random rooms within a direcotry and the other playing an adventure game using the rooms.
+* Author: Joelle Perez
+* Date: 1 Nov 2019
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -36,18 +43,13 @@ int main() {
 	form_structs(room_names, room_list); /*function to assign each name and room type to a struct room: id, name, room type*/
 	initialize(room_list); /*set rooms to default elements, num_connections, room_connections*/
 
-	/*addRandConnect(room_list);*/
-
 	/*adding connections*/
 	while (graphFull(room_list) == false) {
 		addRandConnect(room_list);
-		printf("Running\n");
 	}
 
 	print_info(room_list); /*prints everything else but the connection names for each room*/
 	printf("\n");
-
-	printf("Connections made. Making files.\n");
 
 	make_dir_files(room_names, room_list); /*makes files in directory*/
 
@@ -59,10 +61,10 @@ void addRandConnect(struct room *list) {
 	struct room *a;
 	struct room *b;
 
-	printf("In addRandConnect\n");
-
 	while(true) {
 		a = getRandRoom(list);
+
+		printf("STRUCT ROOM: %s\n", a->name);
 
 		if(canAddConnect(a) == true) {
 			break;
@@ -137,6 +139,10 @@ void connectRoom(struct room *a, struct room *b) {
 
 	a->num_connections++; /*increment # connections*/
 	b->num_connections++;
+
+	printf("ROOM A: %s\n", a->name);
+	printf("ROOM B: %s\n", b->name);
+	printf("\n");
 }
 
 bool sameRoom(struct room *a, struct room *b) {
