@@ -48,46 +48,69 @@ int main() {
 		addRandConnect(room_list);
 	}
 
-	print_info(room_list); /*prints everything else but the connection names for each room*/
-	printf("\n");
-
 	make_dir_files(room_names, room_list); /*makes files in directory*/
 
 	return 0;
 }
 
-/*connections*/
+/*
+* Function name: addRandConnect()
+* Purpose: Adds random connections to each room
+* Arguments: struct room *list
+* Returns: none
+* Based on pseudocode from 2.2 Outlining in Program 2
+*/
 void addRandConnect(struct room *list) {
 	struct room *a;
 	struct room *b;
 
+	/*proceed when connections can be made otherwise get new room*/
 	while(true) {
 		a = getRandRoom(list);
-
-		printf("STRUCT ROOM: %s\n", a->name);
-
 		if(canAddConnect(a) == true) {
 			break;
 		}
 	}
 
+	/*make sure the second room can be used*/
 	do {
 		b = getRandRoom(list);
 	} while(canAddConnect(b) == false || sameRoom(a, b) == true || connectionExists(a, b) == true);
 	
 	connectRoom(a, b);
-	/*connectRoom(b, a);*/
-
 }
 
+/*
+* Function name: printf_info()
+* Purpose: Prints room infor for testing
+* Arguments: struct room *list
+* Returns: none
+*/
 void print_info(struct room *list) {
-	int i;
+	int i, j;
+	int count = 1;
 
 	for(i = 0; i < 7; i++) {
 		printf("ID %d\nRoom name: %s\nRoom type: %s\n# Connections: %d\n", list[i].room_id, list[i].name, list[i].room_type, list[i].num_connections);
+		printf("ROOM CONNECTIONS\n");
+
+		for(j = 0; j < 7; j++) {
+			if (list[i].room_connections[j] == 1) {
+				printf("Connection %d: %s\n", count, list[j].name);
+				count++;
+			}
+		}
+		count = 1;
+		printf("\n");
 	}
 }
 
+/*
+* Function name: initialize()
+* Purpose: Initializes the number of connections and indexes of the connections for each room
+* Arguments: struct room *list
+* Returns: none
+*/
 void initialize(struct room *list) {
 	int i, j;
 
@@ -100,6 +123,12 @@ void initialize(struct room *list) {
 	}
 }
 
+/*
+* Function name: graphFull()
+* Purpose: Determine if all structs were filled with connections
+* Arguments: struct room *list
+* Returns: boolean
+*/
 bool graphFull(struct room *list) {
 	int i;
 
@@ -112,11 +141,23 @@ bool graphFull(struct room *list) {
 	return true;
 }
 
+/*
+* Function name: getRandRoom()
+* Purpose: Get's a randome room from the list
+* Arguments: struct room *list
+* Returns: struct room *
+*/
 struct room *getRandRoom(struct room *list) {
 	int rand_index = rand() % 7;
-	return &list[rand_index];
+	return &list[rand_index]; /*returns the address*/
 }
 
+/*
+* Function name: canAddConnection()
+* Purpose: To see if more connections can be made
+* Arguments: struct room *c
+* Returns: boolean
+*/
 bool canAddConnect(struct room *c) {
 	if(c->num_connections < 6) {
 		return true;
@@ -125,27 +166,43 @@ bool canAddConnect(struct room *c) {
 	return false;
 }
 
+/*
+* Function name: connectionExists()
+* Purpose: Determines if a connections between the rooms already exit or not
+* Arguments: struct room *a, struct *b
+* Returns: booleans
+*/
 bool connectionExists(struct room *a, struct room *b) {
-	if ((a->room_connections[b->room_id] == 1) && (b->room_connections[a->room_id] == 1)) { /*if they are true at the index/id of the room_connections for both rooms, then they are connected*/
+	/*if they are true at the index/id of the room_connections for both rooms, then they are connected*/
+	if ((a->room_connections[b->room_id] == 1) && (b->room_connections[a->room_id] == 1)) { 
 		return true;
 	}
 
 	return false;
 }
 
+/*
+* Function name: connectRoom()
+* Purpose: Connect the structs together by making each struct their connecting room
+* Arguments: struct room *a, struct room *b
+* Returns:  none
+*/
 void connectRoom(struct room *a, struct room *b) {
 	a->room_connections[b->room_id] = 1; /*say true for index*/
 	b->room_connections[a->room_id] = 1;
 
 	a->num_connections++; /*increment # connections*/
 	b->num_connections++;
-
-	printf("ROOM A: %s\n", a->name);
-	printf("ROOM B: %s\n", b->name);
-	printf("\n");
 }
 
+/*
+* Function name: sameRoom()
+* Purpose: Determines whether two structs are the same
+* Arguments: struct room *a, struct room *b
+* Returns: boolean
+*/
 bool sameRoom(struct room *a, struct room *b) {
+	/*if the ids for both structs are the same then true*/
 	if(a->room_id == b->room_id) {
 		return true;
 	}
@@ -153,65 +210,83 @@ bool sameRoom(struct room *a, struct room *b) {
 	return false;
 }
 
-/*assigns names and room type*/
+/*
+* Function name: form_structs()
+* Purpose: Form the structs filling in the elements for each room
+* Arguments: char *arr[], struct room *list
+* Returns: none
+*/
 void form_structs(char *arr[], struct room *list) {
 	int i;
 	for (i = 0; i < 7; i++) {
 		list[i].name = arr[i];
 		list[i].room_id = i;
 
-		if(i == 0) { /*first room is starting room*/
+		/*first room is starting room*/
+		if(i == 0) {
 			list[i].room_type = "START_ROOM";
 		}
 
-		else if (i == 1) { /*second room is end room*/
+		/*second room is end room*/
+		else if (i == 1) {
 			list[i].room_type = "END_ROOM";
 		}
 
 		else {
 			list[i].room_type = "MID_ROOM";
 		}
-
-		/*printf("Room %d is %s and type is %s.\n", i, list[i].name, list[i].room_type);*/
 	}
 }
 
+/*
+* Function name: make_dir_files()
+* Purpose: To make a directory and the files within that directory
+* Arguments: char *arr[], struct room *list
+* Returns: none
+*/
 void make_dir_files(char *arr[], struct room *list) {
 	FILE * fp;
 	int i, j;
 	int pid = getpid(); /*process ID of rooms*/
 	char dir_name[300];	/*directory to rooms*/
 	char dir_path[300];
-
+	int countthis = 1;
 	sprintf(dir_name, "perezjoe.rooms.%d", pid); /*makes name of directory; change to include room*/
 	mkdir(dir_name, 0777);	/*makes directory with all permissions*/
-
+	
 	/*creates each file*/
 	for (i = 0; i < 7; i++) {
 		sprintf(dir_path, "perezjoe.rooms.%d/%s", pid, arr[i]); /*adds file name to dir path*/
 
-		/*function to write data into files*/
 		fp = fopen (dir_path, "w"); /*opens file*/
 		fprintf(fp, "ROOM NAME: %s\n",list[i].name);
-		/*have a function to print out the connections for each room ex. write_connections(FILE *file, char path, struct room *list)*/
-		/*write_connections(fp, dir_path, list);*/
-		for (j = 0; j < list[i].num_connections; j++) {
-			fprintf(fp, "CONNECTION %d: %s\n", j+1, list[j].name);
+
+		for (j = 0; j < 7; j++) {
+			if (list[i].room_connections[j] == 1) {
+				fprintf(fp, "CONNECTION %d: %s\n", countthis, list[j].name);
+				countthis++;
+			}
 		}
-		/*fprintf(fp, "%d\n", list[i].num_connections);*/
+		countthis = 1;
 		fprintf(fp, "ROOM TYPE: %s", list[i].room_type);
 		fclose(fp); /*close file*/
 	}
 }
 
-/*does not need a reference, passing in a pointer gets dereferenced so the original array was changed*/
+/*
+* Function name: shuffle()
+* Purpose: Shuffles the strings within an array
+* Arguments: char *arr[]
+* Returns: none
+*/
 void shuffle (char *arr[]) {
 	int i, rand_num;
 	char *temp;
 
 	for (i = 0; i < 10; i++) {
-		rand_num = (rand() % (10-i)) + i;
+		rand_num = (rand() % (10-i)) + i; /*randomly assign a number using the index*/
 
+		/*switch names around*/
 		temp = arr[i];
 		arr[i] = arr[rand_num];
 		arr[rand_num] = temp;
