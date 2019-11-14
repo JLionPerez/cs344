@@ -21,6 +21,7 @@ int main() {
 }
 
 void commands(char *input) {
+    //switch statements for commands
     
 }
 
@@ -28,7 +29,7 @@ void rep_pid(char *input) {
     char strA[300];
     char strB[300];
     bool flag = true;
-    bool switch;
+    bool switched = true;
     char *dd;
 
     // if(dd != NULL) {
@@ -36,24 +37,39 @@ void rep_pid(char *input) {
     // } else {
     //     flag = false;
     // }
+    
     char* line = input;
+    printf("Line is input\n");
     int pid = getpid();
 
-
     while(flag) {
+
         dd = strstr(line, "$$");
         
         if(dd == NULL) {
+            printf("Flag is false\n");
             flag = false;
             break;
         }
 
+        printf("Flag is true\n");
+
         dd[0] = '%';
         dd[1] = 'd';
 
-        sprintf(new_str, input, pid);
+        if(switched) {
+            printf("Line is A\n");
+            line = strA;
+            switched = false;
+        } else {
+            printf("Line is B\n");
+            line = strB;
+            switched = true;
+        }
+
+        sprintf(line, input, pid);
+        printf("%s\n", line);
     }
-    printf("%s\n", new_str);
 }
 
 void shell_loop(char *input) {
