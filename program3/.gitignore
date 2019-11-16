@@ -1,2 +1,6 @@
 p3testscript
 smallsh
+forktest
+forktest.c
+mytestresults
+prints.txt

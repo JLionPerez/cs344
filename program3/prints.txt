@@ -1,7 +1,0 @@
-//prints out arguments from the args list; temporary
-// int j;
-// printf("Args: ");
-// for(j = 0; j < 3; j++) {
-//     printf("%s ",args[j]);
-// }
-// printf("\n");
