@@ -5,56 +5,114 @@
 #include <stdbool.h>
 #include <string.h>
 
-// GOAL: Prompt
-// NEXT GOAL: Built-In Commands
+#define TOT_ARGS 512
+#define TOT_CHARS 2048
+
+//CURRENTLY WORKING ON: cd
+//GOAL: finish cd
+//NEXT GOAL: status
 
 //prototypes
 void shell_loop(char *input);
-void commands(char *input);
+void rep_pid(char *input);
+void parse(char *input, char **arguments, int *num_els);
+void commands(char **arguments, int num_els);
+void change_dir(char **aruments, int num_args);
 
 int main() {
-    char *line;
-    shell_loop(line); //get user input
+    char *c_line;
+    shell_loop(c_line); //get user input
 
     return 0;
 }
 
-void commands(char *input) {
-
-}
-
 void shell_loop(char *input) {
-    //char **args;
-    char new_str[100];
     ssize_t bufsize = 0; //initial 0
     bool stat = true;
+    char **args = malloc(TOT_ARGS * sizeof(char *));
+    int num_line_elements = 0;
 
     do {
-
-        // if (strcmp(line, "exit") == 0) {
-        //     stat = false;
-        // }
-
         printf(": ");
         getline(&input, &bufsize, stdin);
-        strtok(input, "\n");
+        strtok(input, "\n"); //removes enter
 
-        char *dd = strstr(input, "$$"); //gets pointer of where $$ is, ex. dd[0] = '%'dd[1] = 'd' would replace string with 
+        if (strlen(input) > TOT_CHARS) {
+            printf("error too many characters\n");
+        }
+
+        else {
+            rep_pid(input); //$$ to pid
+            parse(input, args, &num_line_elements); //parse in arguments
+            commands(args, num_line_elements); //finds built in commands
+        }
+
+        fflush(stdout); //clears stdout buffer 
+
+        //stat = false; //when exiting turn stat to false
+    } while(stat); //when stat is false it breaks otherwise keeps going
+}
+
+void commands(char **arguments, int num_els) { //3 built-in commands
+    int command_args = num_els - 1; //not include command itself
+
+    if(strcmp(arguments[0], "cd") == 0) {
+        printf("changing directories\n");
+        change_dir(arguments, command_args);
+    }
+
+    else if(strcmp(arguments[0], "status") == 0) {
+        printf("showing status\n");
+    }
+
+    else if(strcmp(arguments[0], "exit") == 0) {
+        printf("exiting now\n");
+    }
+}
+
+void change_dir(char **arguments, int num_args) {
+    char *path_dir;
+
+    //printf("Num args: %d\n", num_args);
+
+    if(num_args == 0) {
+        //printf("in if\n");
+        path_dir = getenv("HOME");
+        chdir(path_dir);
+        //printf("Path: %s\n", path_dir);
+    }
+}
+
+void parse(char *input, char **arguments, int *num_els) {
+        int i = 0;
+        int elements = 0;
+        char *arg = strtok(input, " ");
+
+        while(arg != NULL) {
+            if(i > TOT_ARGS) {
+                printf("error too many arguments");
+                break;
+            }
+
+            arguments[i] = arg;
+            i++;
+            elements++;
+
+            arg = strtok(NULL, " ");
+        }
+
+        *num_els = elements; //dereference passed arg to change to actual elements
+}
+
+void rep_pid(char *input) {
+    char new_str[300];
+    char *dd = strstr(input, "$$");
+
+    if(dd != NULL) {
         dd[0] = '%';
         dd[1] = 'd';
         sprintf(new_str, input, getpid());
-
-        printf("%s", new_str);
-        //sprintf(input, "%d", );
-
-        // size_t i = 0;
-        // while(input[i] != '\0') {
-
-        //     //printf("%c\n", input[i]);
-        //     i++;
-        // }
-        //printf("Repeated: %s", input);
-
-        stat = false; //temporary
-    } while(stat); //when stat is false it breaks otherwise keeps going
+        strcpy(input, new_str);
+        printf("%s\n", input);
+    }
 }
