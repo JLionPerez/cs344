@@ -71,10 +71,9 @@ void commands(char **arguments, int num_els) { //3 built-in commands
 }
 
 void change_dir(char **arguments, int num_args) {
-    char path_dir[TOT_CHARS];
-    char app_dir[TOT_CHARS];
-    char new_cwd[TOT_CHARS];
-    char *cur_dir;;
+    char path_dir[256];
+    char new_cwd[256];
+    char *cur_dir;
 
     //printf("Num args: %d\n", num_args);
 
@@ -86,27 +85,9 @@ void change_dir(char **arguments, int num_args) {
         //printf("Path: %s\n", path_dir);
     }
 
-    else if(num_args == 1) {
-        if(strstr(arguments[1], "/") != NULL) {
-            printf("changing into relative dir\n");
-
-            // strcpy(path_dir, "/");
-            // strcpy(app_dir, arguments[1]);
-
-            // strcat(path_dir, app_dir);
-            // printf("path dir: %s\n", path_dir);
-
-            // strcat(cur_dir, path_dir);
-            // printf("cur dir: %s", cur_dir);
-            // chdir(cur_dir);
-        }
-
-        else {
-            printf("changing into absolute dir\n");
-
-            strcpy(path_dir, arguments[1]);
-            chdir(path_dir);
-        }
+    else if(num_args == 1) { //for absolute and relative paths
+        strcpy(path_dir, arguments[1]);
+        chdir(path_dir);
     }
 
     else {
@@ -114,7 +95,7 @@ void change_dir(char **arguments, int num_args) {
     }
 
     cur_dir = getcwd(new_cwd, sizeof(new_cwd));
-    printf("Final current dir: %s\n", cur_dir);
+    //printf("Current dir: %s\n", cur_dir);
 }
 
 void parse(char *input, char **arguments, int *num_els) {
