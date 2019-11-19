@@ -47,7 +47,6 @@ void shell_loop(char *input) {
             parse(input, args, &num_line_elements); //parse in arguments
             commands(args, num_line_elements); //finds built in commands
 
-
             //redirection
             // char *o_file = NULL;
             // char *i_file = NULL;
@@ -62,7 +61,7 @@ void shell_loop(char *input) {
 
                 if(strcmp(args[index], "&") == 0) {
                     printf("am & gonna run in bg\n"); //run in background
-                    
+
                     end = index;
                 }
 
@@ -70,7 +69,7 @@ void shell_loop(char *input) {
                     if(strcmp(args[index], ">") == 0) {
                         printf("in outfile\n");
 
-                        i_ptr = fopen(args[index + 1], "w+");
+                        i_ptr = open(args[index + 1], "w+"); //replace with open not fopen
                         printf("%s created\n", args[index + 1]);
                         fclose(i_ptr);
 
@@ -91,7 +90,6 @@ void shell_loop(char *input) {
                 printf("Ending index is %d\n", end);
 
             }
-
         }
 
         fflush(stdout); //clears stdout buffer 
