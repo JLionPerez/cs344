@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <fcntl.h>
 
 #define TOT_ARGS 512
 #define TOT_CHARS 2048
@@ -50,8 +51,9 @@ void shell_loop(char *input) {
             //redirection
             // char *o_file = NULL;
             // char *i_file = NULL;
-            FILE *i_ptr;
-            FILE *o_ptr;
+            // FILE *i_ptr;
+            // FILE *o_ptr;
+            int file_desc;
             int end = 0;
 
             printf("num els: %d\n", num_line_elements);
@@ -69,9 +71,9 @@ void shell_loop(char *input) {
                     if(strcmp(args[index], ">") == 0) {
                         printf("in outfile\n");
 
-                        i_ptr = open(args[index + 1], "w+"); //replace with open not fopen
+                        file_desc = open(args[index + 1], O_RDONLY); //replace with open not fopen look at Aish's note in phone, int is used to pass through dup2()
                         printf("%s created\n", args[index + 1]);
-                        fclose(i_ptr);
+                        // fclose(i_ptr);
 
                         end = index;
                     }
@@ -79,9 +81,9 @@ void shell_loop(char *input) {
                     else if(strcmp(args[index], "<") == 0) {
                         printf("in infile\n");
                         
-                        o_ptr = fopen(args[index + 1], "w+");
+                        file_desc = open(args[index + 1], O_WRONLY | O_TRUNC | O_CREAT);
                         printf("%s created\n", args[index + 1]);
-                        fclose(o_ptr);
+                        // fclose(o_ptr);
 
                         end = index;
                     }
