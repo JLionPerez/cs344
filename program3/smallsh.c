@@ -8,9 +8,10 @@
 #define TOT_ARGS 512
 #define TOT_CHARS 2048
 
-//CURRENTLY WORKING ON: cd
-//GOAL: finish cd
-//NEXT GOAL: status
+//FINISHED: cd
+//CURRENTLY WORKING ON: redirection
+//GOAL: finish redirection
+//NEXT GOAL: background
 
 //prototypes
 void shell_loop(char *input);
@@ -45,10 +46,43 @@ void shell_loop(char *input) {
             rep_pid(input); //$$ to pid
             parse(input, args, &num_line_elements); //parse in arguments
             commands(args, num_line_elements); //finds built in commands
+
+            //printf("num els: %d\n", num_line_elements);
+
+            //redirection
+            char *o_file = NULL;
+            char *i_file = NULL;
+
+            for(int index = num_line_elements - 1; index >= 0; index--) {
+                //printf("index: %d\n", index);
+
+                if(strcmp(args[index], "&") == 0) {
+                    printf("am & gonna run in bg\n"); //run in background
+                }
+
+                else {
+                    if(strcmp(args[index], ">") == 0) {
+                        printf("in outfile\n");
+                        //strcpy(o_file, args[index + 1]);
+                        printf("%s created\n", args[index + 1]);
+                    }
+
+                    else if(strcmp(args[index], "<") == 0) {
+                        printf("in infile\n");
+                        //strcpy(i_file, args[index + 1]);
+                        printf("%s created\n", args[index + 1]);
+                    }
+                }
+                
+                //printf("%s\n", args[index]);
+
+            }
+
         }
 
         fflush(stdout); //clears stdout buffer 
 
+        num_line_elements = 0; //reset
         //stat = false; //when exiting turn stat to false
     } while(stat); //when stat is false it breaks otherwise keeps going
 }

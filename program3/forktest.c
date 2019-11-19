@@ -7,8 +7,9 @@
 
 void main() {
 
-	pid_t spawnpid = -5; //initial initialization
+	pid_t spawnpid = -5; //initial initialization, cannot be 0 because child is 0
 	int ten = 10;
+	
 
 	spawnpid = fork(); //has a new value
 	switch(spawnpid)
@@ -21,6 +22,7 @@ void main() {
 		case 0: //in the child process, fork() returns 0
 			ten = ten + 1;
 			printf("I am the child! ten = %d\n", ten);
+
 			break;
 
 		default: //in the parent process, fork() returns the process id of the child process that was just created
