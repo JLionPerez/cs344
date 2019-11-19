@@ -47,34 +47,48 @@ void shell_loop(char *input) {
             parse(input, args, &num_line_elements); //parse in arguments
             commands(args, num_line_elements); //finds built in commands
 
-            //printf("num els: %d\n", num_line_elements);
 
             //redirection
-            char *o_file = NULL;
-            char *i_file = NULL;
+            // char *o_file = NULL;
+            // char *i_file = NULL;
+            FILE *i_ptr;
+            FILE *o_ptr;
+            int end = 0;
+
+            printf("num els: %d\n", num_line_elements);
 
             for(int index = num_line_elements - 1; index >= 0; index--) {
-                //printf("index: %d\n", index);
+                printf("index: %d\n", index);
 
                 if(strcmp(args[index], "&") == 0) {
                     printf("am & gonna run in bg\n"); //run in background
+                    
+                    end = index;
                 }
 
                 else {
                     if(strcmp(args[index], ">") == 0) {
                         printf("in outfile\n");
-                        //strcpy(o_file, args[index + 1]);
+
+                        i_ptr = fopen(args[index + 1], "w+");
                         printf("%s created\n", args[index + 1]);
+                        fclose(i_ptr);
+
+                        end = index;
                     }
 
                     else if(strcmp(args[index], "<") == 0) {
                         printf("in infile\n");
-                        //strcpy(i_file, args[index + 1]);
+                        
+                        o_ptr = fopen(args[index + 1], "w+");
                         printf("%s created\n", args[index + 1]);
+                        fclose(o_ptr);
+
+                        end = index;
                     }
                 }
                 
-                //printf("%s\n", args[index]);
+                printf("Ending index is %d\n", end);
 
             }
 
