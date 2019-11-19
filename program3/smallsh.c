@@ -87,6 +87,8 @@ void shell_loop(char *input) {
 
                         end = index;
                     }
+
+                    //dup2(file_desc);
                 }
                 
                 printf("Ending index is %d\n", end);
