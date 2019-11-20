@@ -76,9 +76,9 @@ void shell_loop(char *input) {
                     printf("am & gonna run in bg\n"); //run in background
 
                     //end = index;
-                    args[index] = NULL;
+                    //args[index] = NULL;
                     num_line_elements--; //starts at count 1
-                    end = index - 1; //starts at count 0
+                    //end = index - 1; //starts at count 0
                     //end = num_line_elements;
                     //printf("%s\n", args[index]);
 
@@ -94,13 +94,17 @@ void shell_loop(char *input) {
                         
                         printf("Input file desc: %d\n", ifile_desc);
 
-                        args[index] = NULL;
+                        for(int i = index; i < num_line_elements; i++) {
+                            args[i] = NULL;
+                        }
+                        
+                        //args[index] = NULL;
 
                         //close(ifile_desc);
-                        end = index - 1;
-                        //num_line_elements = index;
+                        //end = index - 1;
+                        num_line_elements = index;
 
-                        dup2(ifile_desc, 0);
+                        i_dup_ret = dup2(ifile_desc, 0);
                     }
 
                     else if(strcmp(args[index], ">") == 0) {
@@ -111,36 +115,41 @@ void shell_loop(char *input) {
 
                         printf("Output file desc: %d\n", ofile_desc);
 
-                        args[index] = NULL;
+                        //args[index] = NULL;
+
+                        for(int i = index; i < num_line_elements; i++) {
+                            args[i] = NULL;
+                        }
 
                         //close(ofile_desc);
-                        end = index - 1;
-                        //num_line_elements = index;
+                        //end = index - 1;
+                        num_line_elements = index;
 
-                        //dup2(ofile_desc, 1);
+                        o_dup_ret = dup2(ofile_desc, 1);
 
                     }
 
-                    for (int i = 0; args[i] != NULL; i++) {
-                        printf("%s-", args[i]);
+                    for (int i = 0; i < 10; i++) {
+                        printf("%s ", args[i]);
                     }
                     printf ("\n");
 
                     //works, but needs end to be right
-                    // if ((ifile_desc >= 0) && (ofile_desc >= 0)) {
-                    //     execvp(args[0], args);
-                    // }
+                    if ((ifile_desc >= 0) && (ofile_desc >= 0)) {
+                        execvp(args[0], args);
+                    }
 
-                    // else {
-                    //     printf("error files not open\n");
-                    // }
+                    else {
+                        printf("error files not open\n");
+                    }
 
-                    printf("Ending index is %d\n", end);
+                    end = num_line_elements - 1;
+                    printf("Num index% d\n", num_line_elements);
                 }
 
             }
 
-            num_line_elements = end + 1;
+            //num_line_elements = end + 1;
         }
 
         fflush(stdout); //clears stdout buffer 
