@@ -19,7 +19,8 @@ void shell_loop(char *input);
 void rep_pid(char *input);
 void parse(char *input, char **arguments, int *num_els);
 void commands(char **arguments, int num_els);
-void change_dir(char **aruments, int num_args);
+void change_dir(char **arguments, int num_args);
+bool is_redirect_exists(char **arguments, int num_els);
 
 //global variables
 bool ampersand_exists = false; //signifies if the process will be in the bg
@@ -55,7 +56,25 @@ void shell_loop(char *input) {
             parse(input, args, &num_line_elements); //parse in arguments
             commands(args, num_line_elements); //finds built in commands
 
-            //fork();
+            
+            //validate if redirection exists then
+            // bool read_red = false;
+            // bool out_red = false;
+            // bool redirection = false;
+            // for (int i  = 0; i < num_line_elements; i++) {
+            //     if (strcmp(args[i], "<") == 0) { //read in exists
+            //         read_red = true;
+            //     }
+
+            //     else if (strcmp(args[i], ">") == 0) { //read out exists
+            //         out_red = true;
+            //     }
+            // }
+
+            // if ((read_red = true) || (out_red = true)) {
+            //     redirection = true;
+            // }
+            //fork(); // must forl before redirection stuff, and make a counter to make sure you don't have more than 10 forks
 
             //redirection
             // char *o_file = NULL;
@@ -116,7 +135,7 @@ void shell_loop(char *input) {
                         o_dup_ret = dup2(ofile_desc, 1);
                         printf("2\n");
                         fflush(stdout);
-                        close(ofile_desc);
+                        //close(ofile_desc);
 
                         break;
                     }
@@ -153,6 +172,28 @@ void shell_loop(char *input) {
         num_line_elements = 0; //reset
         //stat = false; //when exiting turn stat to false
     } while(stat); //when stat is false it breaks otherwise keeps going
+}
+
+bool is_redirect_exists(char **arguments, int num_els) {
+    bool read_red = false;
+    bool out_red = false;
+    bool redirection = false;
+
+    for (int i  = 0; i < num_els; i++) {
+        if (strcmp(arguments[i], "<") == 0) { //read in exists
+            read_red = true;
+        }
+
+        else if (strcmp(arguments[i], ">") == 0) { //read out exists
+            out_red = true;
+        }
+    }
+
+    if ((read_red = true) || (out_red = true)) {
+        redirection = true;
+    }
+
+    return redirection;
 }
 
 void commands(char **arguments, int num_els) { //3 built-in commands
