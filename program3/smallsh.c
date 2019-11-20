@@ -78,9 +78,11 @@ void shell_loop(char *input) {
                     //end = index;
                     args[index] = NULL;
                     num_line_elements--; //starts at count 1
-                    end = num_line_elements - 1; //starts at count 0
+                    end = index - 1; //starts at count 0
                     //end = num_line_elements;
                     //printf("%s\n", args[index]);
+
+                    //run bg version of redirection
                 }
 
                 else {
@@ -88,38 +90,57 @@ void shell_loop(char *input) {
                         printf("in infile\n");
 
                         ifile_desc = open(args[index + 1], O_RDONLY); //replace with open not fopen look at Aish's note in phone, int is used to pass through dup2()
-                        printf("%s created\n", args[index + 1]);
+                        //printf("%s created\n", args[index + 1]);
                         
                         printf("Input file desc: %d\n", ifile_desc);
 
-                        close(ifile_desc);
-                        end = index - 1;
-                        num_line_elements = index;
+                        args[index] = NULL;
 
-                        i_dup_ret = dup2(ifile_desc, 0);
+                        //close(ifile_desc);
+                        end = index - 1;
+                        //num_line_elements = index;
+
+                        dup2(ifile_desc, 0);
                     }
 
                     else if(strcmp(args[index], ">") == 0) {
                         printf("in outfile\n");
                         
                         ofile_desc = open(args[index + 1], O_WRONLY | O_TRUNC | O_CREAT, 0770);
-                        printf("%s created\n", args[index + 1]);
+                        //printf("%s created\n", args[index + 1]);
 
                         printf("Output file desc: %d\n", ofile_desc);
 
-                        close(ofile_desc);
-                        end = index - 1;
-                        num_line_elements = index;
+                        args[index] = NULL;
 
-                        o_dup_ret = dup2(ofile_desc, 1);
+                        //close(ofile_desc);
+                        end = index - 1;
+                        //num_line_elements = index;
+
+                        //dup2(ofile_desc, 1);
 
                     }
 
-                    execvp(args[0], args);
+                    for (int i = 0; args[i] != NULL; i++) {
+                        printf("%s-", args[i]);
+                    }
+                    printf ("\n");
+
+                    //works, but needs end to be right
+                    // if ((ifile_desc >= 0) && (ofile_desc >= 0)) {
+                    //     execvp(args[0], args);
+                    // }
+
+                    // else {
+                    //     printf("error files not open\n");
+                    // }
+
                     printf("Ending index is %d\n", end);
                 }
 
             }
+
+            num_line_elements = end + 1;
         }
 
         fflush(stdout); //clears stdout buffer 
