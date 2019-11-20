@@ -89,7 +89,7 @@ void shell_loop(char *input) {
                         printf("in infile\n");
 
                         ifile_desc = open(args[index + 1], O_RDONLY); //replace with open not fopen look at Aish's note in phone, int is used to pass through dup2()
-                        //printf("%s created\n", args[index + 1]);
+                        printf("%s created\n", args[index + 1]);
                         
                         printf("Input file desc: %d\n", ifile_desc);
 
@@ -103,7 +103,7 @@ void shell_loop(char *input) {
                         printf("in outfile\n");
                         
                         ofile_desc = open(args[index + 1], O_WRONLY | O_TRUNC | O_CREAT, 0770);
-                        //printf("%s created\n", args[index + 1]);
+                        printf("%s created\n", args[index + 1]);
 
                         printf("Output file desc: %d\n", ofile_desc);
 
