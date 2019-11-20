@@ -66,7 +66,6 @@ void shell_loop(char *input) {
             int o_dup_ret;
             int end = 0; //ending index of args
             int num_args = 0;
-            char **c_args; //args of command
 
             printf("num els: %d\n", num_line_elements);
 
@@ -94,9 +93,10 @@ void shell_loop(char *input) {
                         printf("Input file desc: %d\n", ifile_desc);
 
                         close(ifile_desc);
-                        //end = index;
+                        end = index - 1;
+                        num_line_elements = index;
 
-                        //i_dup_ret = dup2(ifile_desc, 0);
+                        i_dup_ret = dup2(ifile_desc, 0);
                     }
 
                     else if(strcmp(args[index], ">") == 0) {
@@ -108,20 +108,14 @@ void shell_loop(char *input) {
                         printf("Output file desc: %d\n", ofile_desc);
 
                         close(ofile_desc);
-                        //end = index;
+                        end = index - 1;
+                        num_line_elements = index;
 
-                        //o_dup_ret = dup2(ofile_desc, 1);
+                        o_dup_ret = dup2(ofile_desc, 1);
 
                     }
 
-                    // for (int i = 1; i < end; i++) {
-                    //     printf("%s\n", args[i]);
-                    //     num_args++;
-                    // }
-
-                    // c_args = malloc(num_args * sizeof(char *));
-
-                    //execvp(args[0], );
+                    execvp(args[0], args);
                     printf("Ending index is %d\n", end);
                 }
 
