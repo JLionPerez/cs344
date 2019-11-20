@@ -21,6 +21,9 @@ void parse(char *input, char **arguments, int *num_els);
 void commands(char **arguments, int num_els);
 void change_dir(char **aruments, int num_args);
 
+//global variables
+bool ampersand_exists = false; //signifies if the process will be in the bg
+
 int main() {
     char *c_line;
     shell_loop(c_line); //get user input
@@ -43,6 +46,10 @@ void shell_loop(char *input) {
             printf("error too many characters\n");
         }
 
+        else if (num_line_elements > TOT_ARGS) {
+            printf("error too many arguments\n");
+        }
+
         else {
             rep_pid(input); //$$ to pid
             parse(input, args, &num_line_elements); //parse in arguments
@@ -53,8 +60,13 @@ void shell_loop(char *input) {
             // char *i_file = NULL;
             // FILE *i_ptr;
             // FILE *o_ptr;
-            int file_desc;
-            int end = 0;
+            int ifile_desc;
+            int ofile_desc;
+            int i_dup_ret;
+            int o_dup_ret;
+            int end = 0; //ending index of args
+            int num_args = 0;
+            char **c_args; //args of command
 
             printf("num els: %d\n", num_line_elements);
 
@@ -64,34 +76,54 @@ void shell_loop(char *input) {
                 if(strcmp(args[index], "&") == 0) {
                     printf("am & gonna run in bg\n"); //run in background
 
-                    end = index;
+                    //end = index;
+                    args[index] = NULL;
+                    num_line_elements--; //starts at count 1
+                    end = num_line_elements - 1; //starts at count 0
+                    //end = num_line_elements;
+                    //printf("%s\n", args[index]);
                 }
 
                 else {
-                    if(strcmp(args[index], ">") == 0) {
-                        printf("in outfile\n");
-
-                        file_desc = open(args[index + 1], O_RDONLY); //replace with open not fopen look at Aish's note in phone, int is used to pass through dup2()
-                        printf("%s created\n", args[index + 1]);
-                        // fclose(i_ptr);
-
-                        end = index;
-                    }
-
-                    else if(strcmp(args[index], "<") == 0) {
+                    if(strcmp(args[index], "<") == 0) {
                         printf("in infile\n");
-                        
-                        file_desc = open(args[index + 1], O_WRONLY | O_TRUNC | O_CREAT);
-                        printf("%s created\n", args[index + 1]);
-                        // fclose(o_ptr);
 
-                        end = index;
+                        ifile_desc = open(args[index + 1], O_RDONLY); //replace with open not fopen look at Aish's note in phone, int is used to pass through dup2()
+                        //printf("%s created\n", args[index + 1]);
+                        
+                        printf("Input file desc: %d\n", ifile_desc);
+
+                        close(ifile_desc);
+                        //end = index;
+
+                        //i_dup_ret = dup2(ifile_desc, 0);
                     }
 
-                    //dup2(file_desc);
+                    else if(strcmp(args[index], ">") == 0) {
+                        printf("in outfile\n");
+                        
+                        ofile_desc = open(args[index + 1], O_WRONLY | O_TRUNC | O_CREAT, 0770);
+                        //printf("%s created\n", args[index + 1]);
+
+                        printf("Output file desc: %d\n", ofile_desc);
+
+                        close(ofile_desc);
+                        //end = index;
+
+                        //o_dup_ret = dup2(ofile_desc, 1);
+
+                    }
+
+                    // for (int i = 1; i < end; i++) {
+                    //     printf("%s\n", args[i]);
+                    //     num_args++;
+                    // }
+
+                    // c_args = malloc(num_args * sizeof(char *));
+
+                    //execvp(args[0], );
+                    printf("Ending index is %d\n", end);
                 }
-                
-                printf("Ending index is %d\n", end);
 
             }
         }
