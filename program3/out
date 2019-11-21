@@ -1,13 +1,20 @@
-index: 2
-index: 1
-Input file desc: 12
-index: 0
+Foreground index: 0
+argument #: >
+argument #: out
+Foreground Arguments: ls (null) (null) abc.txt
 asdf
+chicken
+dsfds
+fdsfds
 forktest
 forktest.c
+jdsdf
+jfdsds
 mytestresults
 out
+out2
 p3testscript
 smallsh
 smallsh.c
 test_dir
+vfdfd
