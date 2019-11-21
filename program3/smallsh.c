@@ -80,6 +80,10 @@ void shell_loop(char *input) {
             rep_pid(input); //$$ to pid
             parse(input, args, &num_line_elements); //parse in arguments
 
+            // if(strcmp(args[num_line_elements], "&") == 0) {
+            //     ampersand_exists = true;
+            // }
+
             if(strcmp(args[0], "#") == 0) { //for comments
                 //printf("ignore comment, move on\n");
                 //fflush(stdout);
@@ -114,7 +118,7 @@ void shell_loop(char *input) {
 }
 
 void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_desc, int *o_desc) {
-    int spawnpid = fork();
+    pid_t spawnpid = fork();
     int status;
     //printf("Spawn pid: %d\n", spawnpid);
     //fflush(stdout);
@@ -147,8 +151,6 @@ void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_d
                 ampersand_exists = true;
                 arguments[*end] = NULL;
 
-                
-
                 //printf("going into background\n");
                 //fflush(stdout);
 
@@ -161,17 +163,18 @@ void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_d
                 redirect(arguments, num_els, end, i_desc, o_desc);
             }
 
+            
+
+            // if(ampersand_exists == true) { //is a background
+            //     printf("Child in background\n");
+            //     fflush(stdout);
+
+            //     bg_pids[*counter] = getpid();
+
+            //     printf("PID: %d", bg_pids[*counter]);
+            //     fflush(stdout);
+            // }
             execvp(arguments[0], arguments); //for non built in
-
-            if(ampersand_exists == true) { //is a background
-                printf("Child in background\n");
-                fflush(stdout);
-
-                bg_pids[*counter] = getpid();
-
-                printf("PID: %d", bg_pids[*counter]);
-                fflush(stdout);
-            }
             break;
         
         default: //parent takes care of the built in commands
@@ -181,6 +184,19 @@ void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_d
             if(ampersand_exists == false) {
                 waitpid(spawnpid, &status, 0);
             }
+            if(ampersand_exists == true) { //is a background
+                printf("Child in background\n");
+                fflush(stdout);
+
+                printf("Counter: %d\n", *counter);
+
+                bg_pids[*counter] = spawnpid;
+
+                printf("PID: %d\n", bg_pids[*counter]);
+                fflush(stdout);
+            }
+
+            
     }
 }
 
