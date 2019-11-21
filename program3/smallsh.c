@@ -136,6 +136,8 @@ void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_d
     printf("Spawn pid: %d\n", spawnpid);
     fflush(stdout);
 
+    *end = num_els - 1;
+
     switch(spawnpid)
     {
         case -1: //error
@@ -147,14 +149,14 @@ void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_d
             printf("Am child\n");
             fflush(stdout);
 
-            if(is_redirect_exists(arguments, num_els) == true) {
+            if(is_redirect_exists(arguments, num_els) == true) { //redirection exists
                 printf("redirection exists, commencing redirect protocol\n");
                 redirect(arguments, num_els, end, i_desc, o_desc);
             }
 
-            execvp(arguments[0], arguments);
+            execvp(arguments[0], arguments); //for non built in
 
-            if(ampersand_exists == true) {
+            if(ampersand_exists == true) { //is a background
                 printf("Child in background\n");
                 fflush(stdout);
 
@@ -190,6 +192,11 @@ void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc)
             ampersand_exists = true;
             *end = index - 1;
             arguments[index] = NULL;
+
+            printf("going into background\n");
+            fflush(stdout);
+
+            //num_els--;
             //num_line_elements--; //starts at count 1
             back_redirect(arguments, num_els, end, i_desc, o_desc);
             //run bg version of redirection
@@ -231,13 +238,16 @@ void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc)
     // makes the new array for execvp
     for(int k = *end + 1; k < num_els; k++) {
         arguments[k] = NULL;
+        
     }
 
-    // prints new arguments array with the replaced NULLS
-    // for (int i = 0; i < num_els; i++) { //sees the arguments
-    //     printf("%s ", arguments[i]);
-    //     fflush(stdout);
-    // }
+    //prints new arguments array with the replaced NULLS
+    printf("Foreground Arguments: ");
+    fflush(stdout);
+    for (int i = 0; i < num_els; i++) { //sees the arguments
+        printf("%s ", arguments[i]);
+        fflush(stdout);
+    }
 
     // printf ("\n");
     // fflush(stdout);
@@ -272,6 +282,14 @@ void back_redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_
     // makes the new array for execvp
     for(int k = *end + 1; k < num_els; k++) {
         arguments[k] = NULL;
+    }
+
+    //prints new arguments array with the replaced NULLS
+    printf("Background Arguments: ");
+    fflush(stdout);
+    for (int i = 0; i < num_els; i++) { //sees the arguments
+        printf("%s ", arguments[i]);
+        fflush(stdout);
     }
 }
 
