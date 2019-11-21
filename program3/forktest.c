@@ -22,6 +22,7 @@ void main() {
 		case 0: //in the child process, fork() returns 0
 			ten = ten + 1;
 			printf("I am the child! ten = %d\n", ten);
+			printf("%d", spawnpid);
 
 			break;
 
