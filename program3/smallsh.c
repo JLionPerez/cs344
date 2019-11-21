@@ -78,36 +78,34 @@ void shell_loop(char *input) {
             rep_pid(input); //$$ to pid
             parse(input, args, &num_line_elements); //parse in arguments
 
-            if(strcmp(args[0], "#") == 0) {
+            if(strcmp(args[0], "#") == 0) { //for comments
                 printf("ignore comment, move on\n");
                 fflush(stdout);
             }
 
             else {
-                printf("this is inBuilt: %d\n", in_built);
-                if((strcmp(args[0], "cd") == 0) || (strcmp(args[0], "status") == 0) || (strcmp(args[0], "exit") == 0)) {
+                printf("this is inBuilt: %d\n", in_built); //checks status on boolean
+                if((strcmp(args[0], "cd") == 0) || (strcmp(args[0], "status") == 0) || (strcmp(args[0], "exit") == 0)) { //run built in commands
                     printf("built in true\n");
                     fflush(stdout);
                     commands(args, num_line_elements); //finds built in commands
                     in_built = true;
                 }
 
-                printf("num els: %d\n", num_line_elements);
+                printf("num els: %d\n", num_line_elements); //prints amount of words in input array
                 fflush(stdout);
 
-                if(in_built == false) {
+                if(in_built == false) { //if command is non built in
                     printf("built in is false\n");
                     fflush(stdout);
                     switch_pids(&fork_counter, args, num_line_elements, &end_index, &ifile_desc, &ofile_desc);
                 }
 
-                if(is_redirect_exists(args, num_line_elements) == true) {
-                    redirect(args, num_line_elements, &end_index, &ifile_desc, &ofile_desc);
-                }
+                // if(is_redirect_exists(args, num_line_elements) == true) {
+                //     redirect(args, num_line_elements, &end_index, &ifile_desc, &ofile_desc);
+                // }
 
-                execvp(args[0], args);
-
-                //exec_nbcommands(args, ifile_desc, ofile_desc, has_redirect);
+                //execvp(args[0], args);
 
                 printf("Number of elements: %d\n", num_line_elements);
                 fflush(stdout);
@@ -117,12 +115,6 @@ void shell_loop(char *input) {
                 fflush(stdout);
                 printf("Output file descriptor: %d\n", ofile_desc);
                 fflush(stdout);
-
-                //copy into new_args from args
-                //for ()
-
-                printf("Last argument index is %d\n", end_index);
-                fflush(stdout); //clears stdout buffer 
             }
         }
 
@@ -141,7 +133,7 @@ void shell_loop(char *input) {
 void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_desc, int *o_desc) {
     int spawnpid = fork();
     int status;
-    printf("%d\n", spawnpid);
+    printf("Spawn pid: %d\n", spawnpid);
     fflush(stdout);
 
     switch(spawnpid)
@@ -154,27 +146,34 @@ void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_d
         case 0: //child takes care of the non built in commands
             printf("Am child\n");
             fflush(stdout);
+
             if(is_redirect_exists(arguments, num_els) == true) {
+                printf("redirection exists, commencing redirect protocol\n");
                 redirect(arguments, num_els, end, i_desc, o_desc);
             }
 
             execvp(arguments[0], arguments);
 
             if(ampersand_exists == true) {
+                printf("Child in background\n");
+                fflush(stdout);
+
                 bg_pids[*counter] = getpid();
+
                 printf("PID: %d", bg_pids[*counter]);
                 fflush(stdout);
             }
-            counter++;
-
             break;
         
         default: //parent takes care of the built in commands
             printf("Am parent\n");
             fflush(stdout);
+
             if(ampersand_exists == false) {
                 waitpid(spawnpid, &status, 0);
             }
+
+            *counter++;
     }
 }
 
@@ -184,14 +183,15 @@ void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc)
     fflush(stdout);
 
     for(int index = num_els - 1; index >= 0; index--) {
-        printf("index: %d\n", index);
+        printf("Foreground index: %d\n", index);
         fflush(stdout);
 
         if(strcmp(arguments[index], "&") == 0) {
             ampersand_exists = true;
-            back_redirect(arguments, num_els, end, i_desc, o_desc);
-            //*end = index - 1;
+            *end = index - 1;
+            arguments[index] = NULL;
             //num_line_elements--; //starts at count 1
+            back_redirect(arguments, num_els, end, i_desc, o_desc);
             //run bg version of redirection
             break;
         }
@@ -245,7 +245,7 @@ void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc)
 
 void back_redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc) {
     for(int index = num_els - 1; index >= 0; index--) {
-        printf("index: %d\n", index);
+        printf("Background index: %d\n", index);
         fflush(stdout);
 
         if(strcmp(arguments[index], "<") == 0) { //reading in
@@ -275,23 +275,13 @@ void back_redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_
     }
 }
 
-// void exec_nbcommands(char **arguments, int i_desc, int o_desc, bool has_r) {
-//     if ((i_desc >= 0) && (o_desc >= 0) && (has_r)) {
-//         execvp(arguments[0], arguments);
-//     }
-
-//     else {
-//         printf("error files not open\n");
-//         fflush(stdout);
-//     }
-// }
-
 bool is_redirect_exists(char **arguments, int num_els) {
     bool read_red = false;
     bool out_red = false;
 
     for (int i  = 0; i < num_els; i++) {
         if (strcmp(arguments[i], "<") == 0) { //read in exists
+
             read_red = true;
         }
 
@@ -300,7 +290,7 @@ bool is_redirect_exists(char **arguments, int num_els) {
         }
     }
 
-    if ((read_red = true) || (out_red = true)) {
+    if ((read_red == true) || (out_red == true)) {
         return true;
     }
 
