@@ -24,7 +24,7 @@ void change_dir(char **arguments, int num_args);
 bool is_redirect_exists(char **arguments, int num_els);
 void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc);
 void back_redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc);
-void switch_pids(int *counter);
+void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_desc, int *o_desc);
 
 //global variables
 bool ampersand_exists = false; //signifies if the process will be in the bg
@@ -98,7 +98,7 @@ void shell_loop(char *input) {
                 if(in_built == false) {
                     printf("built in is false\n");
                     fflush(stdout);
-                    switch_pids(&fork_counter);
+                    switch_pids(&fork_counter, args, num_line_elements, &end_index, &ifile_desc, &ofile_desc);
                 }
 
                 if(is_redirect_exists(args, num_line_elements) == true) {
@@ -138,7 +138,7 @@ void shell_loop(char *input) {
     } while(stat); //when stat is false it breaks otherwise keeps going
 }
 
-void switch_pids(int *counter) {
+void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_desc, int *o_desc) {
     int spawnpid = fork();
     int status;
     printf("%d\n", spawnpid);
@@ -154,11 +154,11 @@ void switch_pids(int *counter) {
         case 0: //child takes care of the non built in commands
             printf("Am child\n");
             fflush(stdout);
-            if(is_redirect_exists(args, num_line_elements) == true) {
-                redirect(args, num_line_elements, &end_index, &ifile_desc, &ofile_desc);
+            if(is_redirect_exists(arguments, num_els) == true) {
+                redirect(arguments, num_els, end, i_desc, o_desc);
             }
 
-            execvp(args[0], args);
+            execvp(arguments[0], arguments);
 
             if(ampersand_exists == true) {
                 bg_pids[*counter] = getpid();
