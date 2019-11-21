@@ -22,8 +22,8 @@ void commands(char **arguments, int num_els);
 void change_dir(char **arguments, int num_args);
 bool is_redirect_exists(char **arguments, int num_els);
 void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc);
-void back_redirect();
-void exec_nbcommands(char **arguments, int i_desc, int o_desc);
+void back_redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc);
+//void exec_nbcommands(char **arguments, int i_desc, int o_desc, bool has_r);
 
 //global variables
 bool ampersand_exists = false; //signifies if the process will be in the bg
@@ -44,9 +44,12 @@ void shell_loop(char *input) {
     int fork_counter = 0;
     int ifile_desc = -1; //descriptors
     int ofile_desc = -1;
+    bool in_built = false;
+    //bool has_redirect = false;
+    pid_t spawnpid;
 
     do {
-        if(fork_counter >= 9) {
+        if(fork_counter >= 5) {
             printf("too many forks breaking out of loop\n");
             fflush(stdout);
             break;
@@ -71,36 +74,59 @@ void shell_loop(char *input) {
         else { //run code
             rep_pid(input); //$$ to pid
             parse(input, args, &num_line_elements); //parse in arguments
-            commands(args, num_line_elements); //finds built in commands
 
-            printf("num els: %d\n", num_line_elements);
-            fflush(stdout);
-
-            if(is_redirect_exists(args, num_line_elements) == true) {
-                //fork(); // must fork before redirection stuff, and make a counter to make sure you don't have more than 10 forks
-                redirect(args, num_line_elements, &end_index, &ifile_desc, &ofile_desc);
-                exec_nbcommands(args, ifile_desc, ofile_desc);
-                fork_counter++;
+            if(strcmp(args[0], "#") == 0) {
+                printf("ignore comment, move on\n");
+                fflush(stdout);
             }
 
-            printf("Number of elements: %d\n", num_line_elements);
-            fflush(stdout);
-            printf("Ending index: %d\n", end_index);
-            fflush(stdout);
-            printf("Input file descriptor: %d\n", ifile_desc);
-            fflush(stdout);
-            printf("Output file descriptor: %d\n", ofile_desc);
-            fflush(stdout);
+            else {
+                
+                if((strcmp(args[0], "cd") == 0) || (strcmp(args[0], "status") == 0) || (strcmp(args[0], "exit"))) {
+                    commands(args, num_line_elements); //finds built in commands
+                    in_built = true;
+                }
 
-            //copy into new_args from args
-            //for ()
+                printf("num els: %d\n", num_line_elements);
+                fflush(stdout);
 
-            printf("Last argument index is %d\n", end_index);
-            fflush(stdout); //clears stdout buffer 
+                if(in_built == false) {
+                    spawnpid = fork();
+                    fork_counter++;
+                }
+
+                if(is_redirect_exists(args, num_line_elements) == true) {
+                    redirect(args, num_line_elements, &end_index, &ifile_desc, &ofile_desc);
+                }
+
+                execvp(args[0], args);
+
+                //exec_nbcommands(args, ifile_desc, ofile_desc, has_redirect);
+
+                printf("Number of elements: %d\n", num_line_elements);
+                fflush(stdout);
+                printf("Ending index: %d\n", end_index);
+                fflush(stdout);
+                printf("Input file descriptor: %d\n", ifile_desc);
+                fflush(stdout);
+                printf("Output file descriptor: %d\n", ofile_desc);
+                fflush(stdout);
+
+                //copy into new_args from args
+                //for ()
+
+                printf("Last argument index is %d\n", end_index);
+                fflush(stdout); //clears stdout buffer 
+            }
         }
 
+        printf("Fork #%d\n", fork_counter);
         fflush(stdout); //clears stdout buffer 
 
+        //reset array to empty nulls
+        for(int i = 0; i < num_line_elements; i++) {
+            args[i] = NULL;
+        }
         num_line_elements = 0; //reset
         //stat = false; //when exiting turn stat to false
     } while(stat); //when stat is false it breaks otherwise keeps going
@@ -112,63 +138,106 @@ void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc)
 
     for(int index = num_els - 1; index >= 0; index--) {
         printf("index: %d\n", index);
+        fflush(stdout);
 
         if(strcmp(arguments[index], "&") == 0) {
             ampersand_exists = true;
+            back_redirect(arguments, num_els, end, i_desc, o_desc);
+            //*end = index - 1;
             //num_line_elements--; //starts at count 1
             //run bg version of redirection
+            break;
         }
 
         else {
             if(strcmp(arguments[index], "<") == 0) { //reading in
-
                 *i_desc = open(arguments[index + 1], O_RDONLY); //replace with open not fopen look at Aish's note in phone, int is used to pass through dup2()
+
+                if(*i_desc < 0) {
+                    exit(1);
+                }
+
                 printf("Input file desc: %d\n", *i_desc);
                 fflush(stdout);
 
                 *end = index - 1;
-                //dup2(i_desc, 0);
+                dup2(*i_desc, 0);
             }
 
             else if(strcmp(arguments[index], ">") == 0) { //writing out
                 
                 *o_desc = open(arguments[index + 1], O_WRONLY | O_TRUNC | O_CREAT, 0770);
+
+                if(*o_desc < 0) {
+                    exit(1);
+                }
+
                 printf("Output file desc: %d\n", *o_desc);
                 fflush(stdout);
 
                 *end = index - 1;
-                // printf("1\n");
-                // fflush(stdout);
-                //dup2(o_desc, 1);
-                // printf("2\n");
-                // fflush(stdout);
+                dup2(*o_desc, 1);
             }
-            
-            for(int k = end + 1; k < num_els; k++) {
-                arguments[k] = NULL;
-            }
-
-            for (int i = 0; i < 10; i++) { //sees the arguments
-                printf("%s ", arguments[i]);
-                fflush(stdout);
-            }
-            printf ("\n");
-            fflush(stdout);
-
         }
     }
-}
 
-void exec_nbcommands(char **arguments, int i_desc, int o_desc) {
-    if ((i_desc >= 0) && (o_desc >= 0)) {
-        execvp(arguments[0], arguments);
+    // makes the new array for execvp
+    for(int k = *end + 1; k < num_els; k++) {
+        arguments[k] = NULL;
     }
 
-    else {
-        printf("error files not open\n");
+    // prints new arguments array with the replaced NULLS
+    // for (int i = 0; i < num_els; i++) { //sees the arguments
+    //     printf("%s ", arguments[i]);
+    //     fflush(stdout);
+    // }
+
+    // printf ("\n");
+    // fflush(stdout);
+}
+
+void back_redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc) {
+    for(int index = num_els - 1; index >= 0; index--) {
+        printf("index: %d\n", index);
         fflush(stdout);
+
+        if(strcmp(arguments[index], "<") == 0) { //reading in
+
+            if(arguments[index + 1] == NULL) {
+                *i_desc = open("/dev/NULL", 0);
+                dup2(*i_desc, 0);
+            }
+
+            *end = index - 1;
+        }
+
+        else if(strcmp(arguments[index], ">") == 0) { //writing out
+
+            if(arguments[index + 1] == NULL) {
+                *o_desc = open("/dev/NULL", 0);
+                dup2(*o_desc, 0);
+            }
+
+            *end = index - 1;
+        }
+    }
+
+    // makes the new array for execvp
+    for(int k = *end + 1; k < num_els; k++) {
+        arguments[k] = NULL;
     }
 }
+
+// void exec_nbcommands(char **arguments, int i_desc, int o_desc, bool has_r) {
+//     if ((i_desc >= 0) && (o_desc >= 0) && (has_r)) {
+//         execvp(arguments[0], arguments);
+//     }
+
+//     else {
+//         printf("error files not open\n");
+//         fflush(stdout);
+//     }
+// }
 
 bool is_redirect_exists(char **arguments, int num_els) {
     bool read_red = false;
