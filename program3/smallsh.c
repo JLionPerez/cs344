@@ -19,14 +19,14 @@
 void shell_loop(char *input);
 void rep_pid(char *input);
 void parse(char *input, char **arguments, int *num_els);
-void commands(char **arguments, int num_els, int *counter, int *end, int *i_desc, int *o_desc, int *exit_status);
+void commands(char **arguments, int num_els, int *end, int *i_desc, int *o_desc, int *exit_status);
 void change_dir(char **arguments, int num_args);
 void show_status(int exit_status);
 void exit_now();
 bool is_redirect_exists(char **arguments, int num_els);
 void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc);
 void back_redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc);
-void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_desc, int *o_desc, int *exit_status);
+void switch_pids(char **arguments, int num_els, int *end, int *i_desc, int *o_desc, int *exit_status);
 
 //global variables
 bool ampersand_exists = false; //signifies if the process will be in the bg
@@ -47,16 +47,15 @@ void shell_loop(char *input) {
     char **args = malloc(TOT_ARGS * sizeof(char *));
     int num_line_elements = 0;
     int end_index = 0; //ending index of args
-    int fork_counter = 0;
     int ifile_desc = -1; //descriptors
     int ofile_desc = -1;
     bool in_built = false;
     pid_t spawnpid;
 
     do {
-        if(fork_counter >= 5) {
-            //printf("too many forks breaking out of loop\n");
-            //fflush(stdout);
+        if(pids_counter >= 20) {
+            printf("too many forks breaking out of loop\n");
+            fflush(stdout);
             break;
         }
 
@@ -91,7 +90,7 @@ void shell_loop(char *input) {
             }
 
             else {
-                commands(args, num_line_elements, &fork_counter, &end_index, &ifile_desc, &ofile_desc, &status); //finds built in commands
+                commands(args, num_line_elements, &end_index, &ifile_desc, &ofile_desc, &status); //finds built in commands
 
                 //print tests
                 printf("Number of elements: %d\n", num_line_elements);
@@ -122,7 +121,7 @@ void shell_loop(char *input) {
     } while(stat); //when stat is false it breaks otherwise keeps going
 }
 
-void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_desc, int *o_desc, int *exit_status) {
+void switch_pids(char **arguments, int num_els, int *end, int *i_desc, int *o_desc, int *exit_status) {
     pid_t spawnpid = fork();
     int status;
     //printf("Spawn pid: %d\n", spawnpid);
@@ -136,8 +135,6 @@ void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_d
             break;
         
         case 0: //child takes care of the non built in commands
-            // *counter++; //counts forks
-
             if(ampersand_exists) {
                 // arguments[*end] = NULL;
                 // num_els--;
@@ -149,24 +146,10 @@ void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_d
                 redirect(arguments, num_els, end, i_desc, o_desc);
             }
 
-            // if(ampersand_exists == true) { //is a background
-            //     printf("Child in background\n");
-            //     fflush(stdout);
-
-            //     bg_pids[*counter] = getpid();
-
-            //     printf("PID: %d", bg_pids[*counter]);
-            //     fflush(stdout);
-            // }
             execvp(arguments[0], arguments); //for non built in
             break;
         
         default: //parent takes care of the built in commands
-            //printf("Am parent\n");
-            //fflush(stdout);
-
-            //puts bg pids into array
-
             //checks for bg &
             if(ampersand_exists == false) {
                 waitpid(spawnpid, exit_status, 0);
@@ -184,20 +167,9 @@ void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_d
                     printf("PIDPP: %d\n", bg_pids[i]);
                     fflush(stdout);
                 }
-                
+
                 waitpid(spawnpid, exit_status, WNOHANG);
             }
-            // if(ampersand_exists == true) { //is a background
-            //     printf("Child in background\n");
-            //     fflush(stdout);
-
-            //     printf("Counter: %d\n", *counter);
-
-            //     bg_pids[*counter] = spawnpid;
-
-            //     printf("PID: %d\n", bg_pids[*counter]);
-            //     fflush(stdout);
-            // } 
     }
 }
 
@@ -326,7 +298,7 @@ bool is_redirect_exists(char **arguments, int num_els) {
     return false;
 }
 
-void commands(char **arguments, int num_els, int *counter, int *end, int *i_desc, int *o_desc, int *exit_status) { //3 built-in commands
+void commands(char **arguments, int num_els, int *end, int *i_desc, int *o_desc, int *exit_status) { //3 built-in commands
     int command_args = num_els - 1; //not include command itself
 
     if(strcmp(arguments[0], "cd") == 0) {
@@ -365,7 +337,7 @@ void commands(char **arguments, int num_els, int *counter, int *end, int *i_desc
             ampersand_exists = false;
         }
 
-        switch_pids(counter, arguments, num_els, end, i_desc, o_desc, exit_status);
+        switch_pids(arguments, num_els, end, i_desc, o_desc, exit_status);
     }
 }
 
