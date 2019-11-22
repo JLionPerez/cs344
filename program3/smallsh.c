@@ -6,6 +6,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <sys/wait.h>
+#include <signal.h>
 
 #define TOT_ARGS 512
 #define TOT_CHARS 2048
@@ -79,13 +80,12 @@ void shell_loop(char *input) {
             rep_pid(input); //$$ to pid
             parse(input, args, &num_line_elements); //parse in arguments
 
-            // if(strcmp(args[num_line_elements], "&") == 0) {
-            //     ampersand_exists = true;
-            // }
-
             if(strcmp(args[0], "#") == 0) { //for comments
-                //printf("ignore comment, move on\n");
-                //fflush(stdout);
+                for(int i = 0; i < num_line_elements; i++) {
+                    args[i] = NULL;
+                }
+
+                num_line_elements = 0; //reset
                 continue;
             }
 
@@ -104,14 +104,6 @@ void shell_loop(char *input) {
             }
         }
 
-        // printf("# of bg pids is %d\n", pids_counter);
-        // fflush(stdout); //clears stdout buffer 
-
-        // for (int i = 0; i < pids_counter; i++) {
-        //     printf("PIDPP: %d\n", bg_pids[i]);
-        //     fflush(stdout);
-        // }
-
         //reset array to empty nulls
         for(int i = 0; i < num_line_elements; i++) {
             args[i] = NULL;
@@ -123,9 +115,7 @@ void shell_loop(char *input) {
 
 void switch_pids(char **arguments, int num_els, int *end, int *i_desc, int *o_desc, int *exit_status) {
     pid_t spawnpid = fork();
-    int status;
-    //printf("Spawn pid: %d\n", spawnpid);
-    //fflush(stdout);
+    int exec_ret;
 
     switch(spawnpid)
     {
@@ -136,17 +126,19 @@ void switch_pids(char **arguments, int num_els, int *end, int *i_desc, int *o_de
         
         case 0: //child takes care of the non built in commands
             if(ampersand_exists) {
-                // arguments[*end] = NULL;
-                // num_els--;
                 back_redirect(arguments, num_els, end, i_desc, o_desc);
             }
 
             else if(is_redirect_exists(arguments, num_els) == true) { //redirection exists
-                //printf("redirection exists, commencing redirect protocol\n");
                 redirect(arguments, num_els, end, i_desc, o_desc);
             }
 
-            execvp(arguments[0], arguments); //for non built in
+            exec_ret = execvp(arguments[0], arguments); //for non built in
+            if(exec_ret < 0) {
+                perror("execvp failed");
+                exit(2);
+            }
+
             break;
         
         default: //parent takes care of the built in commands
@@ -182,8 +174,7 @@ void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc)
         //fflush(stdout);
 
         if(strcmp(arguments[index], "<") == 0) { //reading in
-            *i_desc = open(arguments[index + 1], O_RDONLY); //replace with open not fopen look at Aish's note in phone, int is used to pass through dup2()
-
+            *i_desc = open(arguments[index + 1], O_RDONLY);
             if(*i_desc < 0) {
                 //printf("i_desc failed\n");
                 //fflush(stdout);
@@ -203,13 +194,13 @@ void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc)
             *o_desc = open(arguments[index + 1], O_WRONLY | O_TRUNC | O_CREAT, 0770);
 
             if(*o_desc < 0) {
-                printf("o_desc has failed\n");
-                fflush(stdout);
+                // printf("o_desc has failed\n");
+                // fflush(stdout);
                 exit(1);
             }
 
-            printf("Output file desc: %d\n", *o_desc);
-            fflush(stdout);
+            // printf("Output file desc: %d\n", *o_desc);
+            // fflush(stdout);
 
             *end = index - 1;
             dup2(*o_desc, 1);
@@ -222,21 +213,10 @@ void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc)
         arguments[k] = NULL;
         
     }
-
-    //prints new arguments array with the replaced NULLS
-    // printf("Foreground Arguments: ");
-    // fflush(stdout);
-    // for (int i = 0; i < num_els; i++) { //sees the arguments
-    //     printf("%s ", arguments[i]);
-    //     fflush(stdout);
-    // }
 }
 
 void back_redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc) {
     for(int index = num_els - 1; index >= 0; index--) {
-        // printf("Background index: %d\n", index);
-        // fflush(stdout);
-
         if(strcmp(arguments[index], "<") == 0) { //reading in
 
             if(arguments[index + 1] == NULL) {
@@ -256,24 +236,12 @@ void back_redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_
 
             *end = index - 1;
         }
-        // printf("background redirect finished\n");
-        // fflush(stdout);
     }
 
     // makes the new array for execvp
     for(int k = *end + 1; k < num_els; k++) {
         arguments[k] = NULL;
     }
-
-    //prints new arguments array with the replaced NULLS
-    // printf("Background Arguments: ");
-    // fflush(stdout);
-    // for (int i = 0; i < num_els; i++) { //sees the arguments
-    //     printf("%s ", arguments[i]);
-    //     fflush(stdout);
-    // }
-    // printf("\n");
-    // fflush(stdout);
 }
 
 bool is_redirect_exists(char **arguments, int num_els) {
@@ -282,7 +250,6 @@ bool is_redirect_exists(char **arguments, int num_els) {
 
     for (int i  = 0; i < num_els; i++) {
         if (strcmp(arguments[i], "<") == 0) { //read in exists
-
             read_red = true;
         }
 
@@ -302,20 +269,15 @@ void commands(char **arguments, int num_els, int *end, int *i_desc, int *o_desc,
     int command_args = num_els - 1; //not include command itself
 
     if(strcmp(arguments[0], "cd") == 0) {
-        // printf("changing directories\n");
-        // fflush(stdout);
         change_dir(arguments, command_args);
     }
 
     else if(strcmp(arguments[0], "status") == 0) {
-        // printf("showing status\n");
-        // fflush(stdout);
         show_status(*exit_status);
     }
 
     else if(strcmp(arguments[0], "exit") == 0) {
-        // printf("exiting now\n");
-        // fflush(stdout);
+        exit_now();
     }
 
     else { // non built in commands
@@ -328,9 +290,6 @@ void commands(char **arguments, int num_els, int *end, int *i_desc, int *o_desc,
             ampersand_exists = true;
             arguments[*end] = NULL;
             num_els--;
-
-            // printf("Ampersand is %d\n", ampersand_exists);
-            // fflush(stdout);
         }
         
         else {
@@ -338,6 +297,12 @@ void commands(char **arguments, int num_els, int *end, int *i_desc, int *o_desc,
         }
 
         switch_pids(arguments, num_els, end, i_desc, o_desc, exit_status);
+    }
+}
+
+void exit_now() {
+    for (int i = 0; i < pids_counter; i++) {
+        kill(bg_pids[i], SIGKILL);
     }
 }
 
@@ -395,7 +360,6 @@ void parse(char *input, char **arguments, int *num_els) {
 
             arg = strtok(NULL, " ");
         }
-
         *num_els = elements; //dereference passed arg to change to actual elements
 }
 
