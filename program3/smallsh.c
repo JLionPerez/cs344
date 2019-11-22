@@ -135,7 +135,8 @@ void switch_pids(char **arguments, int num_els, int *end, int *i_desc, int *o_de
 
             exec_ret = execvp(arguments[0], arguments); //for non built in
             if(exec_ret < 0) {
-                perror("execvp failed");
+                char *str = arguments[0];
+                perror(str);
                 exit(2);
             }
 
@@ -175,13 +176,10 @@ void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc)
         if(strcmp(arguments[index], "<") == 0) { //reading in
             *i_desc = open(arguments[index + 1], O_RDONLY);
             if(*i_desc < 0) {
-                //printf("i_desc failed\n");
-                //fflush(stdout);
+                printf("cannot open %s for input\n", arguments[index + 1]);
+                fflush(stdout);
                 exit(1);
             }
-
-            //printf("Input file desc: %d\n", *i_desc);
-            //fflush(stdout);
 
             *end = index - 1;
             dup2(*i_desc, 0);
@@ -193,13 +191,10 @@ void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc)
             *o_desc = open(arguments[index + 1], O_WRONLY | O_TRUNC | O_CREAT, 0770);
 
             if(*o_desc < 0) {
-                // printf("o_desc has failed\n");
-                // fflush(stdout);
+                printf("cannot open %s for output\n", arguments[index + 1]);
+                fflush(stdout);
                 exit(1);
             }
-
-            // printf("Output file desc: %d\n", *o_desc);
-            // fflush(stdout);
 
             *end = index - 1;
             dup2(*o_desc, 1);
@@ -208,9 +203,7 @@ void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc)
 
     // makes the new array for execvp
     for(int k = *end + 1; k < num_els; k++) {
-        //printf("argument #: %s\n", arguments[k]);
         arguments[k] = NULL;
-        
     }
 }
 
