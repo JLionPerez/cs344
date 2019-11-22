@@ -19,14 +19,14 @@
 void shell_loop(char *input);
 void rep_pid(char *input);
 void parse(char *input, char **arguments, int *num_els);
-void commands(char **arguments, int num_els, int *counter, int *end, int *i_desc, int *o_desc);
+void commands(char **arguments, int num_els, int *counter, int *end, int *i_desc, int *o_desc, int *exit_status);
 void change_dir(char **arguments, int num_args);
 void show_status(int exit_status);
 void exit_now();
 bool is_redirect_exists(char **arguments, int num_els);
 void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc);
 void back_redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc);
-void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_desc, int *o_desc);
+void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_desc, int *o_desc, int *exit_status);
 
 //global variables
 bool ampersand_exists = false; //signifies if the process will be in the bg
@@ -43,6 +43,7 @@ int main() {
 void shell_loop(char *input) {
     ssize_t bufsize = 0; //initial 0
     bool stat = true;
+    int status = 0;
     char **args = malloc(TOT_ARGS * sizeof(char *));
     int num_line_elements = 0;
     int end_index = 0; //ending index of args
@@ -50,7 +51,6 @@ void shell_loop(char *input) {
     int ifile_desc = -1; //descriptors
     int ofile_desc = -1;
     bool in_built = false;
-    //bool has_redirect = false;
     pid_t spawnpid;
 
     do {
@@ -91,7 +91,7 @@ void shell_loop(char *input) {
             }
 
             else {
-                commands(args, num_line_elements, &fork_counter, &end_index, &ifile_desc, &ofile_desc); //finds built in commands
+                commands(args, num_line_elements, &fork_counter, &end_index, &ifile_desc, &ofile_desc, &status); //finds built in commands
 
                 //print tests
                 printf("Number of elements: %d\n", num_line_elements);
@@ -105,13 +105,13 @@ void shell_loop(char *input) {
             }
         }
 
-        printf("# of bg pids is %d\n", pids_counter);
-        fflush(stdout); //clears stdout buffer 
+        // printf("# of bg pids is %d\n", pids_counter);
+        // fflush(stdout); //clears stdout buffer 
 
-        for (int i = 0; i < pids_counter; i++) {
-            printf("PIDPP: %d\n", bg_pids[i]);
-            fflush(stdout);
-        }
+        // for (int i = 0; i < pids_counter; i++) {
+        //     printf("PIDPP: %d\n", bg_pids[i]);
+        //     fflush(stdout);
+        // }
 
         //reset array to empty nulls
         for(int i = 0; i < num_line_elements; i++) {
@@ -122,7 +122,7 @@ void shell_loop(char *input) {
     } while(stat); //when stat is false it breaks otherwise keeps going
 }
 
-void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_desc, int *o_desc) {
+void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_desc, int *o_desc, int *exit_status) {
     pid_t spawnpid = fork();
     int status;
     //printf("Spawn pid: %d\n", spawnpid);
@@ -136,43 +136,7 @@ void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_d
             break;
         
         case 0: //child takes care of the non built in commands
-            *counter++; //counts forks
-
-            //printf("Am child\n");
-            //fflush(stdout);
-
-            // *end = num_els - 1;
-
-            // printf("Arguments: "); //prints array
-            // fflush(stdout);
-            // for (int i = 0; i < 10; i++) {
-            //     printf("%s ",arguments[i]);
-            //     fflush(stdout);
-            // }
-            // printf("\n");
-            // fflush(stdout);
-
-            // printf("Current element: %s\n", arguments[*end]);
-            // fflush(stdout);
-
-            // if(strcmp(arguments[*end], "&") == 0) {
-            //     ampersand_exists = true;
-            //     pids_counter++;
-            //     arguments[*end] = NULL;
-
-            //     printf("Ampersand is %d\n", ampersand_exists);
-            //     fflush(stdout);
-
-                //printf("going into background\n");
-                //fflush(stdout);
-
-            bg_pids[pids_counter - 1] = getpid();
-            printf("Spawnpid: %d\n", bg_pids[pids_counter - 1]);
-
-            // for (int i = 0; i < pids_counter; i++) {
-            //     printf("PID: %d\n", bg_pids[i]);
-            //     fflush(stdout);
-            // }
+            // *counter++; //counts forks
 
             if(ampersand_exists) {
                 // arguments[*end] = NULL;
@@ -201,12 +165,27 @@ void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_d
             //printf("Am parent\n");
             //fflush(stdout);
 
+            //puts bg pids into array
+
+            //checks for bg &
             if(ampersand_exists == false) {
-                waitpid(spawnpid, &status, 0);
+                waitpid(spawnpid, exit_status, 0);
             }
             else {
                 printf("I have an amb \n");
-                waitpid(spawnpid, &status, WNOHANG);
+                pids_counter++;
+                bg_pids[pids_counter - 1] = spawnpid;
+                printf("Spawnpid: %d\n", bg_pids[pids_counter - 1]);
+
+                printf("# of bg pids is %d\n", pids_counter);
+                fflush(stdout); //clears stdout buffer 
+
+                for (int i = 0; i < pids_counter; i++) {
+                    printf("PIDPP: %d\n", bg_pids[i]);
+                    fflush(stdout);
+                }
+                
+                waitpid(spawnpid, exit_status, WNOHANG);
             }
             // if(ampersand_exists == true) { //is a background
             //     printf("Child in background\n");
@@ -347,7 +326,7 @@ bool is_redirect_exists(char **arguments, int num_els) {
     return false;
 }
 
-void commands(char **arguments, int num_els, int *counter, int *end, int *i_desc, int *o_desc) { //3 built-in commands
+void commands(char **arguments, int num_els, int *counter, int *end, int *i_desc, int *o_desc, int *exit_status) { //3 built-in commands
     int command_args = num_els - 1; //not include command itself
 
     if(strcmp(arguments[0], "cd") == 0) {
@@ -359,6 +338,7 @@ void commands(char **arguments, int num_els, int *counter, int *end, int *i_desc
     else if(strcmp(arguments[0], "status") == 0) {
         // printf("showing status\n");
         // fflush(stdout);
+        show_status(*exit_status);
     }
 
     else if(strcmp(arguments[0], "exit") == 0) {
@@ -374,7 +354,6 @@ void commands(char **arguments, int num_els, int *counter, int *end, int *i_desc
 
         if(strcmp(arguments[*end], "&") == 0) { //finds out if bg then count for pids
             ampersand_exists = true;
-            pids_counter++;
             arguments[*end] = NULL;
             num_els--;
 
@@ -386,12 +365,21 @@ void commands(char **arguments, int num_els, int *counter, int *end, int *i_desc
             ampersand_exists = false;
         }
 
-        switch_pids(counter, arguments, num_els, end, i_desc, o_desc);
+        switch_pids(counter, arguments, num_els, end, i_desc, o_desc, exit_status);
     }
 }
 
 void show_status(int exit_status) {
-    
+    int exit_stat = WEXITSTATUS(exit_status);
+    int term_sig = WTERMSIG(exit_status);
+
+    if (WIFEXITED(exit_status) != 0) { //checks for exit
+        printf("exit value %d\n", exit_stat);
+    }
+
+    if(WIFSIGNALED(exit_status) != 0) { //checks if terminated by signal
+        printf("terminated by signal %d\n", term_sig);
+    }
 }
 
 void change_dir(char **arguments, int num_args) {
