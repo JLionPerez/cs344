@@ -11,10 +11,10 @@
 #define TOT_ARGS 512
 #define TOT_CHARS 2048
 
-//FINISHED: redirection
-//CURRENTLY WORKING ON: background
-//GOAL: finish background
-//NEXT GOAL: signals
+//FINISHED: background
+//CURRENTLY WORKING ON: signals
+//GOAL: finish signals
+//NEXT GOAL: zip smallsh.c with README.txt
 
 //prototypes
 void shell_loop(char *input);
@@ -93,14 +93,14 @@ void shell_loop(char *input) {
                 commands(args, num_line_elements, &end_index, &ifile_desc, &ofile_desc, &status); //finds built in commands
 
                 //print tests
-                printf("Number of elements: %d\n", num_line_elements);
-                fflush(stdout);
-                printf("Ending index: %d\n", end_index);
-                fflush(stdout);
-                printf("Input file descriptor: %d\n", ifile_desc);
-                fflush(stdout);
-                printf("Output file descriptor: %d\n", ofile_desc);
-                fflush(stdout);
+                // printf("Number of elements: %d\n", num_line_elements);
+                // fflush(stdout);
+                // printf("Ending index: %d\n", end_index);
+                // fflush(stdout);
+                // printf("Input file descriptor: %d\n", ifile_desc);
+                // fflush(stdout);
+                // printf("Output file descriptor: %d\n", ofile_desc);
+                // fflush(stdout);
             }
         }
 
@@ -147,18 +147,17 @@ void switch_pids(char **arguments, int num_els, int *end, int *i_desc, int *o_de
                 waitpid(spawnpid, exit_status, 0);
             }
             else {
-                printf("I have an amb \n");
                 pids_counter++;
                 bg_pids[pids_counter - 1] = spawnpid;
-                printf("Spawnpid: %d\n", bg_pids[pids_counter - 1]);
+                //printf("Spawnpid: %d\n", bg_pids[pids_counter - 1]);
 
-                printf("# of bg pids is %d\n", pids_counter);
-                fflush(stdout); //clears stdout buffer 
+                // printf("# of bg pids is %d\n", pids_counter);
+                // fflush(stdout); //clears stdout buffer 
 
-                for (int i = 0; i < pids_counter; i++) {
-                    printf("PIDPP: %d\n", bg_pids[i]);
-                    fflush(stdout);
-                }
+                // for (int i = 0; i < pids_counter; i++) {
+                //     printf("PIDPP: %d\n", bg_pids[i]);
+                //     fflush(stdout);
+                // }
 
                 waitpid(spawnpid, exit_status, WNOHANG);
             }
