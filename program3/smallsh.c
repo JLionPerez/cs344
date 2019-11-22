@@ -105,8 +105,8 @@ void shell_loop(char *input) {
             }
         }
 
-        //printf("Fork #%d\n", fork_counter);
-        //fflush(stdout); //clears stdout buffer 
+        printf("# of bg pids is %d\n", pids_counter);
+        fflush(stdout); //clears stdout buffer 
 
         //reset array to empty nulls
         for(int i = 0; i < num_line_elements; i++) {
@@ -147,13 +147,21 @@ void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_d
             // printf("\n");
             // fflush(stdout);
 
-            if(strcmp(arguments[*end], "&") == 0) {
-                ampersand_exists = true;
-                arguments[*end] = NULL;
+            printf("Current element: %s\n", arguments[*end]);
+
+            // if(strcmp(arguments[*end], "&") == 0) {
+            //     ampersand_exists = true;
+            //     pids_counter++;
+            //     arguments[*end] = NULL;
+
+            //     printf("Ampersand is %d\n", ampersand_exists);
+            //     fflush(stdout);
 
                 //printf("going into background\n");
                 //fflush(stdout);
 
+            if(ampersand_exists) {
+                arguments[*end] = NULL;
                 num_els--;
                 back_redirect(arguments, num_els, end, i_desc, o_desc);
             }
@@ -162,8 +170,6 @@ void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_d
                 //printf("redirection exists, commencing redirect protocol\n");
                 redirect(arguments, num_els, end, i_desc, o_desc);
             }
-
-            
 
             // if(ampersand_exists == true) { //is a background
             //     printf("Child in background\n");
@@ -184,19 +190,17 @@ void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_d
             if(ampersand_exists == false) {
                 waitpid(spawnpid, &status, 0);
             }
-            if(ampersand_exists == true) { //is a background
-                printf("Child in background\n");
-                fflush(stdout);
+            // if(ampersand_exists == true) { //is a background
+            //     printf("Child in background\n");
+            //     fflush(stdout);
 
-                printf("Counter: %d\n", *counter);
+            //     printf("Counter: %d\n", *counter);
 
-                bg_pids[*counter] = spawnpid;
+            //     bg_pids[*counter] = spawnpid;
 
-                printf("PID: %d\n", bg_pids[*counter]);
-                fflush(stdout);
-            }
-
-            
+            //     printf("PID: %d\n", bg_pids[*counter]);
+            //     fflush(stdout);
+            // } 
     }
 }
 
@@ -345,6 +349,15 @@ void commands(char **arguments, int num_els, int *counter, int *end, int *i_desc
     }
 
     else {
+        if(strcmp(arguments[*end], "&") == 0) {
+            ampersand_exists = true;
+            pids_counter++;
+            //arguments[*end] = NULL;
+
+            printf("Ampersand is %d\n", ampersand_exists);
+            fflush(stdout);
+        }
+
         switch_pids(counter, arguments, num_els, end, i_desc, o_desc);
     }
 }
