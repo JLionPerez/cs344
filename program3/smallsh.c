@@ -21,7 +21,7 @@ void rep_pid(char *input);
 void parse(char *input, char **arguments, int *num_els);
 void commands(char **arguments, int num_els, int *counter, int *end, int *i_desc, int *o_desc);
 void change_dir(char **arguments, int num_args);
-void show_status();
+void show_status(int exit_status);
 void exit_now();
 bool is_redirect_exists(char **arguments, int num_els);
 void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc);
@@ -30,8 +30,8 @@ void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_d
 
 //global variables
 bool ampersand_exists = false; //signifies if the process will be in the bg
-int pids_counter;
-int bg_pids[20];
+int pids_counter = 0;
+pid_t bg_pids[20];
 
 int main() {
     char *c_line;
@@ -108,6 +108,11 @@ void shell_loop(char *input) {
         printf("# of bg pids is %d\n", pids_counter);
         fflush(stdout); //clears stdout buffer 
 
+        for (int i = 0; i < pids_counter; i++) {
+            printf("PIDPP: %d\n", bg_pids[i]);
+            fflush(stdout);
+        }
+
         //reset array to empty nulls
         for(int i = 0; i < num_line_elements; i++) {
             args[i] = NULL;
@@ -160,6 +165,14 @@ void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_d
 
                 //printf("going into background\n");
                 //fflush(stdout);
+
+            bg_pids[pids_counter - 1] = getpid();
+            printf("Spawnpid: %d\n", bg_pids[pids_counter - 1]);
+
+            // for (int i = 0; i < pids_counter; i++) {
+            //     printf("PID: %d\n", bg_pids[i]);
+            //     fflush(stdout);
+            // }
 
             if(ampersand_exists) {
                 // arguments[*end] = NULL;
@@ -359,7 +372,7 @@ void commands(char **arguments, int num_els, int *counter, int *end, int *i_desc
         // printf("In commands current element: %s\n", arguments[*end]);
         // fflush(stdout);
 
-        if(strcmp(arguments[*end], "&") == 0) {
+        if(strcmp(arguments[*end], "&") == 0) { //finds out if bg then count for pids
             ampersand_exists = true;
             pids_counter++;
             arguments[*end] = NULL;
@@ -375,6 +388,10 @@ void commands(char **arguments, int num_els, int *counter, int *end, int *i_desc
 
         switch_pids(counter, arguments, num_els, end, i_desc, o_desc);
     }
+}
+
+void show_status(int exit_status) {
+    
 }
 
 void change_dir(char **arguments, int num_args) {
