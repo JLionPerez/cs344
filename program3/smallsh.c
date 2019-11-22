@@ -16,6 +16,20 @@
 //GOAL: finish signals
 //NEXT GOAL: zip smallsh.c with README.txt
 
+// struct sigaction
+// {
+//     void (*sa_handler)(int);
+//     sigset_t sa_mask;
+//     int sa_flags;
+//     void (*sa_sigaction)(int, siginfo_t*, void*);
+// };
+
+//global variables
+struct sigaction SIGINT_action;
+bool ampersand_exists = false; //signifies if the process will be in the bg
+int pids_counter = 0;
+pid_t bg_pids[20];
+
 //prototypes
 void shell_loop(char *input);
 void rep_pid(char *input);
@@ -29,21 +43,15 @@ void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc)
 void back_redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc);
 void switch_pids(char **arguments, int num_els, int *end, int *i_desc, int *o_desc, int *exit_status);
 
-//global variables
-bool ampersand_exists = false; //signifies if the process will be in the bg
-int pids_counter = 0;
-pid_t bg_pids[20];
-
 int main() {
     char *c_line;
     shell_loop(c_line); //get user input
-
     return 0;
 }
 
 void shell_loop(char *input) {
     ssize_t bufsize = 0; //initial 0
-    bool stat = true;
+    bool stat = true; //keeps do while loop going until it exits
     int status = 0;
     char **args = malloc(TOT_ARGS * sizeof(char *));
     int num_line_elements = 0;
@@ -52,6 +60,13 @@ void shell_loop(char *input) {
     int ofile_desc = -1;
     bool in_built = false;
     pid_t spawnpid;
+    
+
+    SIGINT_action.sa_handler = SIG_IGN;
+    sigfillset(&SIGINT_action.sa_mask);
+    SIGINT_action.sa_flags = SA_RESTART;
+    sigaction(SIGINT, &SIGINT_action, NULL);
+
 
     do {
         if(pids_counter >= 20) {
@@ -66,12 +81,16 @@ void shell_loop(char *input) {
         getline(&input, &bufsize, stdin);
         strtok(input, "\n"); //removes enter
 
-        if (strlen(input) > TOT_CHARS) {
+        if(input[0] == '#') { //checks string for # char if so ignore
+            continue;
+        }
+
+        if (strlen(input) > TOT_CHARS) { //checks for amount of chars
             printf("error too many characters\n");
             fflush(stdout);
         }
 
-        else if (num_line_elements > TOT_ARGS) {
+        else if (num_line_elements > TOT_ARGS) { //checks for amount of args
             printf("error too many arguments\n");
             fflush(stdout);
         }
@@ -79,36 +98,14 @@ void shell_loop(char *input) {
         else { //run code
             rep_pid(input); //$$ to pid
             parse(input, args, &num_line_elements); //parse in arguments
-
-            if(strcmp(args[0], "#") == 0) { //for comments
-                for(int i = 0; i < num_line_elements; i++) {
-                    args[i] = NULL;
-                }
-
-                num_line_elements = 0; //reset
-                continue;
-            }
-
-            else {
-                commands(args, num_line_elements, &end_index, &ifile_desc, &ofile_desc, &status); //finds built in commands
-
-                //print tests
-                // printf("Number of elements: %d\n", num_line_elements);
-                // fflush(stdout);
-                // printf("Ending index: %d\n", end_index);
-                // fflush(stdout);
-                // printf("Input file descriptor: %d\n", ifile_desc);
-                // fflush(stdout);
-                // printf("Output file descriptor: %d\n", ofile_desc);
-                // fflush(stdout);
-            }
+            commands(args, num_line_elements, &end_index, &ifile_desc, &ofile_desc, &status); //finds built in commands
         }
 
         //reset array to empty nulls
         for(int i = 0; i < num_line_elements; i++) {
             args[i] = NULL;
         }
-        num_line_elements = 0; //reset
+        num_line_elements = 0;
         //stat = false; //when exiting turn stat to false
     } while(stat); //when stat is false it breaks otherwise keeps going
 }
@@ -130,6 +127,8 @@ void switch_pids(char **arguments, int num_els, int *end, int *i_desc, int *o_de
             }
 
             else if(is_redirect_exists(arguments, num_els) == true) { //redirection exists
+                SIGINT_action.sa_handler = SIG_DFL;
+                sigaction(SIGINT, &SIGINT_action, NULL);
                 redirect(arguments, num_els, end, i_desc, o_desc);
             }
 
@@ -139,39 +138,22 @@ void switch_pids(char **arguments, int num_els, int *end, int *i_desc, int *o_de
                 perror(str);
                 exit(2);
             }
-
             break;
         
         default: //parent takes care of the built in commands
-            //checks for bg &
             if(ampersand_exists == false) {
                 waitpid(spawnpid, exit_status, 0);
             }
             else {
                 pids_counter++;
                 bg_pids[pids_counter - 1] = spawnpid;
-                //printf("Spawnpid: %d\n", bg_pids[pids_counter - 1]);
-
-                // printf("# of bg pids is %d\n", pids_counter);
-                // fflush(stdout); //clears stdout buffer 
-
-                // for (int i = 0; i < pids_counter; i++) {
-                //     printf("PIDPP: %d\n", bg_pids[i]);
-                //     fflush(stdout);
-                // }
-
                 waitpid(spawnpid, exit_status, WNOHANG);
             }
     }
 }
 
 void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc) {
-    //printf("num els: %d\n", num_els);
-    //fflush(stdout);
-
     for(int index = num_els - 1; index >= 0; index--) {
-        //printf("Foreground index: %d\n", index);
-        //fflush(stdout);
 
         if(strcmp(arguments[index], "<") == 0) { //reading in
             *i_desc = open(arguments[index + 1], O_RDONLY);
@@ -180,22 +162,17 @@ void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc)
                 fflush(stdout);
                 exit(1);
             }
-
             *end = index - 1;
             dup2(*i_desc, 0);
-
         }
 
         else if(strcmp(arguments[index], ">") == 0) { //writing out
-
             *o_desc = open(arguments[index + 1], O_WRONLY | O_TRUNC | O_CREAT, 0770);
-
             if(*o_desc < 0) {
-                printf("cannot open %s for output\n", arguments[index + 1]);
+                printf("cannot create %s for output\n", arguments[index + 1]);
                 fflush(stdout);
                 exit(1);
             }
-
             *end = index - 1;
             dup2(*o_desc, 1);
         }
@@ -209,23 +186,20 @@ void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc)
 
 void back_redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc) {
     for(int index = num_els - 1; index >= 0; index--) {
-        if(strcmp(arguments[index], "<") == 0) { //reading in
 
+        if(strcmp(arguments[index], "<") == 0) { //reading in
             if(arguments[index + 1] == NULL) {
                 *i_desc = open("/dev/NULL", 0);
                 dup2(*i_desc, 0);
             }
-
             *end = index - 1;
         }
 
         else if(strcmp(arguments[index], ">") == 0) { //writing out
-
             if(arguments[index + 1] == NULL) {
                 *o_desc = open("/dev/NULL", 0);
                 dup2(*o_desc, 0);
             }
-
             *end = index - 1;
         }
     }
@@ -274,10 +248,6 @@ void commands(char **arguments, int num_els, int *end, int *i_desc, int *o_desc,
 
     else { // non built in commands
         *end = num_els - 1;
-        
-        // printf("In commands current element: %s\n", arguments[*end]);
-        // fflush(stdout);
-
         if(strcmp(arguments[*end], "&") == 0) { //finds out if bg then count for pids
             ampersand_exists = true;
             arguments[*end] = NULL;
@@ -287,7 +257,6 @@ void commands(char **arguments, int num_els, int *end, int *i_desc, int *o_desc,
         else {
             ampersand_exists = false;
         }
-
         switch_pids(arguments, num_els, end, i_desc, o_desc, exit_status);
     }
 }
@@ -296,6 +265,7 @@ void exit_now() {
     for (int i = 0; i < pids_counter; i++) {
         kill(bg_pids[i], SIGKILL);
     }
+    exit(0);
 }
 
 void show_status(int exit_status) {
