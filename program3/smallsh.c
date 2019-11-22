@@ -136,7 +136,7 @@ void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_d
             //printf("Am child\n");
             //fflush(stdout);
 
-            *end = num_els - 1;
+            // *end = num_els - 1;
 
             // printf("Arguments: "); //prints array
             // fflush(stdout);
@@ -147,7 +147,8 @@ void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_d
             // printf("\n");
             // fflush(stdout);
 
-            printf("Current element: %s\n", arguments[*end]);
+            // printf("Current element: %s\n", arguments[*end]);
+            // fflush(stdout);
 
             // if(strcmp(arguments[*end], "&") == 0) {
             //     ampersand_exists = true;
@@ -161,8 +162,8 @@ void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_d
                 //fflush(stdout);
 
             if(ampersand_exists) {
-                arguments[*end] = NULL;
-                num_els--;
+                // arguments[*end] = NULL;
+                // num_els--;
                 back_redirect(arguments, num_els, end, i_desc, o_desc);
             }
 
@@ -189,6 +190,10 @@ void switch_pids(int *counter, char **arguments, int num_els, int *end, int *i_d
 
             if(ampersand_exists == false) {
                 waitpid(spawnpid, &status, 0);
+            }
+            else {
+                printf("I have an amb \n");
+                waitpid(spawnpid, &status, WNOHANG);
             }
             // if(ampersand_exists == true) { //is a background
             //     printf("Child in background\n");
@@ -348,14 +353,24 @@ void commands(char **arguments, int num_els, int *counter, int *end, int *i_desc
         // fflush(stdout);
     }
 
-    else {
+    else { // non built in commands
+        *end = num_els - 1;
+        
+        // printf("In commands current element: %s\n", arguments[*end]);
+        // fflush(stdout);
+
         if(strcmp(arguments[*end], "&") == 0) {
             ampersand_exists = true;
             pids_counter++;
-            //arguments[*end] = NULL;
+            arguments[*end] = NULL;
+            num_els--;
 
-            printf("Ampersand is %d\n", ampersand_exists);
-            fflush(stdout);
+            // printf("Ampersand is %d\n", ampersand_exists);
+            // fflush(stdout);
+        }
+        
+        else {
+            ampersand_exists = false;
         }
 
         switch_pids(counter, arguments, num_els, end, i_desc, o_desc);
