@@ -26,9 +26,11 @@
 
 //global variables
 struct sigaction SIGINT_action;
+struct sigaction SIGUSR2_action;
 bool ampersand_exists = false; //signifies if the process will be in the bg
 int pids_counter = 0;
 pid_t bg_pids[20];
+bool bg_allowed = true;
 
 //prototypes
 void shell_loop(char *input);
@@ -42,6 +44,7 @@ bool is_redirect_exists(char **arguments, int num_els);
 void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc);
 void back_redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc);
 void switch_pids(char **arguments, int num_els, int *end, int *i_desc, int *o_desc, int *exit_status);
+void catchSIGUSR2(int signo);
 
 int main() {
     char *c_line;
@@ -60,13 +63,18 @@ void shell_loop(char *input) {
     int ofile_desc = -1;
     bool in_built = false;
     pid_t spawnpid;
-    
 
+    //for ctrlC - killing
     SIGINT_action.sa_handler = SIG_IGN;
     sigfillset(&SIGINT_action.sa_mask);
     SIGINT_action.sa_flags = SA_RESTART;
     sigaction(SIGINT, &SIGINT_action, NULL);
 
+    //for ctrlZ - stopping
+    SIGUSR2_action.sa_handler = catchSIGUSR2;
+    sigfillset(&SIGUSR2_action.sa_mask);
+    SIGUSR2_action.sa_flags = 0;
+    sigaction(SIGUSR2, &SIGUSR2_action, NULL);
 
     do {
         if(pids_counter >= 20) {
@@ -102,15 +110,36 @@ void shell_loop(char *input) {
         }
 
         //reset array to empty nulls
-        for(int i = 0; i < num_line_elements; i++) {
+        int i;
+        for(i = 0; i < num_line_elements; i++) {
             args[i] = NULL;
         }
         num_line_elements = 0;
-        //stat = false; //when exiting turn stat to false
+
+        //shows status if a child process has ended
+        int j = 0;
+        int pid_id;
+        while((pid_id = waitpid(-1, &status, WNOHANG)) > 0) {
+            // int exit_stat = WEXITSTATUS(status);
+            // int term_sig = WTERMSIG(status);
+
+            printf("background pid %d is done: ", pid_id);
+            fflush(stdout);
+
+            // if (WIFEXITED(status) != 0) { //checks for exit
+            //     printf("exit value %d\n", exit_stat);
+            // }
+
+            // if(WIFSIGNALED(status) != 0) { //checks if terminated by signal
+            //     printf("terminated by signal %d\n", term_sig);
+            // }
+            show_status(status);
+        }
     } while(stat); //when stat is false it breaks otherwise keeps going
 }
 
 void switch_pids(char **arguments, int num_els, int *end, int *i_desc, int *o_desc, int *exit_status) {
+    signal(SIGTSTP, SIG_IGN);
     pid_t spawnpid = fork();
     int exec_ret;
 
@@ -122,14 +151,23 @@ void switch_pids(char **arguments, int num_els, int *end, int *i_desc, int *o_de
             break;
         
         case 0: //child takes care of the non built in commands
-            if(ampersand_exists) {
+            if((ampersand_exists) && (bg_allowed)) {
                 back_redirect(arguments, num_els, end, i_desc, o_desc);
             }
 
-            else if(is_redirect_exists(arguments, num_els) == true) { //redirection exists
+            else if((ampersand_exists) && (is_redirect_exists(arguments, num_els) == true)) { //if background and has redirecretion
+                back_redirect(arguments, num_els, end, i_desc, o_desc);
+            }
+
+            else if(is_redirect_exists(arguments, num_els) == true) { //if not background run foreground redirection
                 SIGINT_action.sa_handler = SIG_DFL;
                 sigaction(SIGINT, &SIGINT_action, NULL);
                 redirect(arguments, num_els, end, i_desc, o_desc);
+            }
+
+            else if((ampersand_exists == false) && (is_redirect_exists(arguments, num_els) == false)) { //if background and redirection does not exists
+                SIGINT_action.sa_handler = SIG_DFL;
+                sigaction(SIGINT, &SIGINT_action, NULL);
             }
 
             exec_ret = execvp(arguments[0], arguments); //for non built in
@@ -141,10 +179,12 @@ void switch_pids(char **arguments, int num_els, int *end, int *i_desc, int *o_de
             break;
         
         default: //parent takes care of the built in commands
+            signal(SIGTSTP, catchSIGUSR2);
             if(ampersand_exists == false) {
                 waitpid(spawnpid, exit_status, 0);
             }
             else {
+                printf("background pid is %d\n", spawnpid);
                 pids_counter++;
                 bg_pids[pids_counter - 1] = spawnpid;
                 waitpid(spawnpid, exit_status, WNOHANG);
@@ -152,8 +192,24 @@ void switch_pids(char **arguments, int num_els, int *end, int *i_desc, int *o_de
     }
 }
 
+void catchSIGUSR2(int signo) {
+    char *message;
+    if(bg_allowed == false) {
+        message = "Exiting foreground-only mode";
+        write(STDOUT_FILENO, message, 48);
+        bg_allowed = true;
+    }
+
+    else if (bg_allowed) {
+        message = "Entering foreground-only mode (& is now ignored)";
+        write(STDOUT_FILENO, message, 28);
+        bg_allowed = false;
+    }
+}
+
 void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc) {
-    for(int index = num_els - 1; index >= 0; index--) {
+    int index;
+    for(index = num_els - 1; index >= 0; index--) {
 
         if(strcmp(arguments[index], "<") == 0) { //reading in
             *i_desc = open(arguments[index + 1], O_RDONLY);
@@ -179,13 +235,15 @@ void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc)
     }
 
     // makes the new array for execvp
-    for(int k = *end + 1; k < num_els; k++) {
+    int k;
+    for(k = *end + 1; k < num_els; k++) {
         arguments[k] = NULL;
     }
 }
 
 void back_redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc) {
-    for(int index = num_els - 1; index >= 0; index--) {
+    int index;
+    for(index = num_els - 1; index >= 0; index--) {
 
         if(strcmp(arguments[index], "<") == 0) { //reading in
             if(arguments[index + 1] == NULL) {
@@ -205,7 +263,8 @@ void back_redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_
     }
 
     // makes the new array for execvp
-    for(int k = *end + 1; k < num_els; k++) {
+    int k;
+    for(k = *end + 1; k < num_els; k++) {
         arguments[k] = NULL;
     }
 }
@@ -214,7 +273,8 @@ bool is_redirect_exists(char **arguments, int num_els) {
     bool read_red = false;
     bool out_red = false;
 
-    for (int i  = 0; i < num_els; i++) {
+    int i;
+    for (i  = 0; i < num_els; i++) {
         if (strcmp(arguments[i], "<") == 0) { //read in exists
             read_red = true;
         }
@@ -262,7 +322,8 @@ void commands(char **arguments, int num_els, int *end, int *i_desc, int *o_desc,
 }
 
 void exit_now() {
-    for (int i = 0; i < pids_counter; i++) {
+    int i;
+    for (i = 0; i < pids_counter; i++) {
         kill(bg_pids[i], SIGKILL);
     }
     exit(0);
