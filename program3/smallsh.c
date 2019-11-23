@@ -11,19 +11,6 @@
 #define TOT_ARGS 512
 #define TOT_CHARS 2048
 
-//FINISHED: background
-//CURRENTLY WORKING ON: signals
-//GOAL: finish signals
-//NEXT GOAL: zip smallsh.c with README.txt
-
-// struct sigaction
-// {
-//     void (*sa_handler)(int);
-//     sigset_t sa_mask;
-//     int sa_flags;
-//     void (*sa_sigaction)(int, siginfo_t*, void*);
-// };
-
 //global variables
 struct sigaction SIGINT_action;
 struct sigaction SIGUSR2_action;
@@ -120,19 +107,8 @@ void shell_loop(char *input) {
         int j = 0;
         int pid_id;
         while((pid_id = waitpid(-1, &status, WNOHANG)) > 0) {
-            // int exit_stat = WEXITSTATUS(status);
-            // int term_sig = WTERMSIG(status);
-
             printf("background pid %d is done: ", pid_id);
             fflush(stdout);
-
-            // if (WIFEXITED(status) != 0) { //checks for exit
-            //     printf("exit value %d\n", exit_stat);
-            // }
-
-            // if(WIFSIGNALED(status) != 0) { //checks if terminated by signal
-            //     printf("terminated by signal %d\n", term_sig);
-            // }
             show_status(status);
         }
     } while(stat); //when stat is false it breaks otherwise keeps going
@@ -192,6 +168,7 @@ void switch_pids(char **arguments, int num_els, int *end, int *i_desc, int *o_de
     }
 }
 
+//from lecture 
 void catchSIGUSR2(int signo) {
     char *message;
     if(bg_allowed == false) {
@@ -212,7 +189,7 @@ void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc)
     for(index = num_els - 1; index >= 0; index--) {
 
         if(strcmp(arguments[index], "<") == 0) { //reading in
-            *i_desc = open(arguments[index + 1], O_RDONLY);
+            *i_desc = open(arguments[index + 1], O_RDONLY); //gets input descriptor
             if(*i_desc < 0) {
                 printf("cannot open %s for input\n", arguments[index + 1]);
                 fflush(stdout);
@@ -223,7 +200,7 @@ void redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_desc)
         }
 
         else if(strcmp(arguments[index], ">") == 0) { //writing out
-            *o_desc = open(arguments[index + 1], O_WRONLY | O_TRUNC | O_CREAT, 0770);
+            *o_desc = open(arguments[index + 1], O_WRONLY | O_TRUNC | O_CREAT, 0770); //gets output descriptor
             if(*o_desc < 0) {
                 printf("cannot create %s for output\n", arguments[index + 1]);
                 fflush(stdout);
@@ -247,7 +224,7 @@ void back_redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_
 
         if(strcmp(arguments[index], "<") == 0) { //reading in
             if(arguments[index + 1] == NULL) {
-                *i_desc = open("/dev/NULL", 0);
+                *i_desc = open("/dev/NULL", 0); //sends to void
                 dup2(*i_desc, 0);
             }
             *end = index - 1;
@@ -255,7 +232,7 @@ void back_redirect(char **arguments, int num_els, int *end, int *i_desc, int *o_
 
         else if(strcmp(arguments[index], ">") == 0) { //writing out
             if(arguments[index + 1] == NULL) {
-                *o_desc = open("/dev/NULL", 0);
+                *o_desc = open("/dev/NULL", 0); //sends to void
                 dup2(*o_desc, 0);
             }
             *end = index - 1;
